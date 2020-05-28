@@ -1,5 +1,13 @@
 // Grid functions
 const fnGrid = {
+  getBlock: (matrix, row, col) => {
+    const blockLength = fnGrid.getBlockLen(matrix)
+    const rowOffset = row - (row % blockLength)
+    const colOffset = col - (col % blockLength)
+    return fnMatrix.submatrix(matrix, rowOffset, colOffset, blockLength, blockLength)
+  },
+  getBlockLen: matrix => Math.floor(Math.sqrt(matrix.length)),
+
   // Check if the grid contains a valid solution
   validate: (grid) => fnGrid.checkSymbols(grid) && fnGrid.checkRowsUnique(grid) && fnGrid.checkColsUnique(grid) && fnGrid.checkBlockUnique(grid),
 
@@ -8,9 +16,9 @@ const fnGrid = {
 
   // For all rows, check that each value is unique, but not necessarily a valid symbol
   // For each row, make a copy (because sort sorts in-place), sort the values, and if value is equal to the one before it, return false
-  checkRowsUnique: ({ matrix }) => matrix.every(row => row.concat().sort().reduce((ra, v, i, arr) => (i!=0 && ra) ? v!=arr[i-1] : ra, true)),
+  checkRowsUnique: ({ matrix }) => matrix.every(row => row.concat().sort().every((v, i, arr) => i!=0 ? v!=arr[i-1] : true)),
 
-  // Horribly inefficient, but convenient. Transpose matrix then what were originally columns are now rows
+  // Inefficient, but convenient, will be slow for larger boards. Transpose matrix then what were originally columns are now rows
   checkColsUnique: ({ matrix }) => fnGrid.checkRowsUnique({ matrix: fnMatrix.transpose(matrix) }),
 
   // For each block, check that all values are unique
@@ -41,7 +49,7 @@ const fnGrid = {
       }
     }
     // first and only call in this function
-    return _checkBlocksUnique(0, 0, matrix, Math.floor(Math.sqrt(matrix.length)))
+    return _checkBlocksUnique(0, 0, matrix, fnGrid.getBlockLen(matrix))
   },
 
   // Make a shallow copy of a given state
@@ -52,15 +60,15 @@ const fnGrid = {
     }
   },
 
-  // Generate a string for exporting the state of the puzzle, then remove last unnecessary "\n"
-  exportString: ({ symbols, matrix }) => symbols.join(" ") + "\n" + matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
+  // Generate a string for exporting the state of the puzzle, first line being symbols, then matrix
+  exportString: ({ symbols, matrix }) => symbols.join(" ") + "\n" + fnMatrix.toString(matrix),
   
   // Generate a grid from a string
   importString: str => {
     const data = str.split("\n")
     return {
       symbols: data[0].split(" "),
-      matrix: fnMatrix.toString(data.slice(1)),
+      matrix: data.slice(1).map(row => row.split(",")),
     }
   }
 }

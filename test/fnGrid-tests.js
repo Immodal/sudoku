@@ -36,6 +36,39 @@ fnGridTests = {
     grid.matrix.forEach((row, i) => eq(false, row == gridCopy.matrix[i]))
   },
 
+  'gets correct block length': () => {
+    eq(2, fnGrid.getBlockLen(fnGrid.importString(test44EasyGameA.complete).matrix))
+    eq(3, fnGrid.getBlockLen(fnGrid.importString(test99EasyGameA.complete).matrix))
+  },
+
+  'gets correct block': () => {
+    let grid = fnGrid.importString(test44EasyGameA.complete)
+    let exp = [
+      ["3","1"],
+      ["4","2"]
+    ]
+    eq(true, fnGrid.getBlock(grid.matrix, 0, 0).every((row, i) => row.every((v, j) => v == exp[i][j])))
+    exp = [
+      ["4","2"],
+      ["3","1"]
+    ]
+    eq(true, fnGrid.getBlock(grid.matrix, 3, 3).every((row, i) => row.every((v, j) => v == exp[i][j])))
+
+    grid = fnGrid.importString(test99EasyGameA.complete)
+    exp = [
+      ["1","6","2"],
+      ["5","7","3"],
+      ["8","9","4"]
+    ]
+    eq(true, fnGrid.getBlock(grid.matrix, 4, 4).every((row, i) => row.every((v, j) => v == exp[i][j])))
+    exp = [
+      ["7","5","8"],
+      ["4","6","3"],
+      ["1","9","2"]
+    ]
+    eq(true, fnGrid.getBlock(grid.matrix, 6, 2).every((row, i) => row.every((v, j) => v == exp[i][j])))
+  },
+
   'checks blocks of grids for uniqueness of their cells': () => {
     eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.completeInvalid1)))
     eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.completeInvalid2)))

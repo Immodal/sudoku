@@ -6,5 +6,6 @@ const fnMatrix = {
       .map(r => r.slice(col, col + colLength)),
   transpose: matrix => matrix[0].map((col, i) => matrix.map(row => row[i])),
   copy: matrix => matrix.map(row => row.concat()),
-  toString: matrix => matrix.map(row => row.split(",")),
+  // Convert matrix into string with comma separated values and "\n" separates rows. The final "\n" is removed.
+  toString: matrix => matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
 }
