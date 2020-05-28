@@ -51,6 +51,7 @@ const fnGrid = {
       matrix: fnMatrix.copy(matrix),
     }
   },
+
   // Generate a string for exporting the state of the puzzle, then remove last unnecessary "\n"
   exportString: ({ symbols, matrix }) => symbols.join(" ") + "\n" + matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
   
@@ -59,7 +60,7 @@ const fnGrid = {
     const data = str.split("\n")
     return {
       symbols: data[0].split(" "),
-      matrix: data.slice(1).map(row => row.split(",")),
+      matrix: fnMatrix.toString(data.slice(1)),
     }
   }
 }

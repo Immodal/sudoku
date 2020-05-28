@@ -6,4 +6,5 @@ const fnMatrix = {
       .map(r => r.slice(col, col + colLength)),
   transpose: matrix => matrix[0].map((col, i) => matrix.map(row => row[i])),
   copy: matrix => matrix.map(row => row.concat()),
+  toString: matrix => matrix.map(row => row.split(",")),
 }
