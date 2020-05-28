@@ -36,36 +36,38 @@ fnGridTests = {
     grid.matrix.forEach((row, i) => eq(false, row == gridCopy.matrix[i]))
   },
 
-  'checks cells of block for uniqueness': () => {
-    eq(false, fnGrid._validateCells(0, 0, [[1,2],[3,2]], new Set()))
-    eq(false, fnGrid._validateCells(0, 0, [[2,2],[3,4]], new Set()))
-    eq(true, fnGrid._validateCells(0, 0, [[1,2],[3,4]], new Set()))
-  },
-
   'checks blocks of grids for uniqueness of their cells': () => {
-    let grid = fnGrid.importString(test44EasyGameA.completeInvalid1)
-    eq(false, fnGrid.validateBlocks(grid))
-    grid = fnGrid.importString(test44EasyGameA.completeInvalid2)
-    eq(false, fnGrid.validateBlocks(grid))
-    grid = fnGrid.importString(test44EasyGameA.complete)
-    eq(true, fnGrid.validateBlocks(grid))
+    eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkBlockUnique(fnGrid.importString(test44EasyGameA.complete)))
+
+    eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test99EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkBlockUnique(fnGrid.importString(test99EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkBlockUnique(fnGrid.importString(test99EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkBlockUnique(fnGrid.importString(test99EasyGameA.complete)))
+
   },
 
   'checks rows of grids for uniqueness of their cells': () => {
     let matrix = [
       [1,2,3,3]
     ]
-    eq(false, fnGrid.validateRows({ matrix }))
+    eq(false, fnGrid.checkRowsUnique({ matrix }))
     matrix = [
       [1,2,3,4]
     ]
-    eq(true, fnGrid.validateRows({ matrix }))
-    let grid = fnGrid.importString(test44EasyGameA.completeInvalid1)
-    eq(false, fnGrid.validateRows(grid))
-    grid = fnGrid.importString(test44EasyGameA.completeInvalid2)
-    eq(false, fnGrid.validateRows(grid))
-    grid = fnGrid.importString(test44EasyGameA.complete)
-    eq(true, fnGrid.validateRows(grid))
+    eq(true, fnGrid.checkRowsUnique({ matrix }))
+
+    eq(false, fnGrid.checkRowsUnique(fnGrid.importString(test44EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkRowsUnique(fnGrid.importString(test44EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkRowsUnique(fnGrid.importString(test44EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkRowsUnique(fnGrid.importString(test44EasyGameA.complete)))
+
+    eq(false, fnGrid.checkRowsUnique(fnGrid.importString(test99EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkRowsUnique(fnGrid.importString(test99EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkRowsUnique(fnGrid.importString(test99EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkRowsUnique(fnGrid.importString(test99EasyGameA.complete)))
   },
 
   'checks columns of grids for uniqueness of their cells': () => {
@@ -76,23 +78,51 @@ fnGridTests = {
       [3],
       [4]
     ]}
-    eq(false, fnGrid.validateCols(grid))
+    eq(false, fnGrid.checkColsUnique(grid))
     grid.matrix = [
       [4],
       [3],
       [2],
       [1]
     ]
-    eq(true, fnGrid.validateCols(grid))
-    grid = fnGrid.importString(test44EasyGameA.completeInvalid1)
-    eq(false, fnGrid.validateCols(grid))
-    grid = fnGrid.importString(test44EasyGameA.completeInvalid2)
-    eq(false, fnGrid.validateCols(grid))
-    grid = fnGrid.importString(test44EasyGameA.complete)
-    eq(true, fnGrid.validateCols(grid))
+    eq(true, fnGrid.checkColsUnique(grid))
+
+    eq(false, fnGrid.checkColsUnique(fnGrid.importString(test44EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkColsUnique(fnGrid.importString(test44EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkColsUnique(fnGrid.importString(test44EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkColsUnique(fnGrid.importString(test44EasyGameA.complete)))
+
+    eq(false, fnGrid.checkColsUnique(fnGrid.importString(test99EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.checkColsUnique(fnGrid.importString(test99EasyGameA.completeInvalid2)))
+    eq(true, fnGrid.checkColsUnique(fnGrid.importString(test99EasyGameA.completeInvalid3))) // Symbol invalid but rows are still unique
+    eq(true, fnGrid.checkColsUnique(fnGrid.importString(test99EasyGameA.complete)))
   },
 
   'checks whole grid for validity of symbols': () => {
-    
+    eq(false, fnGrid.checkSymbols(fnGrid.importString(test44EasyGameA.input)))
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test44EasyGameA.complete)))
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test44EasyGameA.completeInvalid1))) // Row/Col invalid but symbols are valid
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test44EasyGameA.completeInvalid2)))  // Row/Col invalid but symbols are valid
+    eq(false, fnGrid.checkSymbols(fnGrid.importString(test44EasyGameA.completeInvalid3)))
+
+    eq(false, fnGrid.checkSymbols(fnGrid.importString(test99EasyGameA.input)))
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test99EasyGameA.complete)))
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test99EasyGameA.completeInvalid1))) // Row/Col invalid but symbols are valid
+    eq(true, fnGrid.checkSymbols(fnGrid.importString(test99EasyGameA.completeInvalid2)))  // Row/Col invalid but symbols are valid
+    eq(false, fnGrid.checkSymbols(fnGrid.importString(test99EasyGameA.completeInvalid3)))
+  },
+
+  'check the overall validity of grid': () => {
+    eq(false, fnGrid.validate(fnGrid.importString(test44EasyGameA.input)))
+    eq(true, fnGrid.validate(fnGrid.importString(test44EasyGameA.complete)))
+    eq(false, fnGrid.validate(fnGrid.importString(test44EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.validate(fnGrid.importString(test44EasyGameA.completeInvalid2)))
+    eq(false, fnGrid.validate(fnGrid.importString(test44EasyGameA.completeInvalid3)))
+
+    eq(false, fnGrid.validate(fnGrid.importString(test99EasyGameA.input)))
+    eq(true, fnGrid.validate(fnGrid.importString(test99EasyGameA.complete)))
+    eq(false, fnGrid.validate(fnGrid.importString(test99EasyGameA.completeInvalid1)))
+    eq(false, fnGrid.validate(fnGrid.importString(test99EasyGameA.completeInvalid2)))
+    eq(false, fnGrid.validate(fnGrid.importString(test99EasyGameA.completeInvalid3)))
   }
 }
