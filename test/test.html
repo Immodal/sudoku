@@ -1,0 +1,12 @@
+<script src="tinytest.js"></script>
+<script src="test-games.js"></script>
+<script src="../src/sketch.js"></script>
+<script src="fnMatrix-tests.js"></script>
+<script src="fnGrid-tests.js"></script>
+<script>
+  let testObj = {}
+  Object.assign(testObj, fnMatrixTests)
+  Object.assign(testObj, fnGridTests)
+  // Run
+  tests(testObj)
+</script>
