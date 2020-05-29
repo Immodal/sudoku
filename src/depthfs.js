@@ -1,16 +1,20 @@
 const svDepthfs = {
-  solve: grid => {
-    let states = svDepthfs.getNext(grid) // using "moves" as stack
+  solve: (grid, states=null, stepped=false) => {
+    if (states==null) states = svDepthfs.getNext(grid) // using "states" as stack
     
-    while(states.length>0) {
-      if (fnGrid.validate(grid)) break
+    while(states.length>0 && !grid.isComplete) {
+      if (fnGrid.validate(grid)) { 
+        grid = fnGrid.setIsComplete(grid, true)
+        break
+      }
       else {
         grid = states.pop()
         states = states.concat(svDepthfs.getNext(grid))
       }
+      if (stepped) break
     }
 
-    return grid
+    return {grid: grid, states: states}
   },
 
   getNext: grid => {

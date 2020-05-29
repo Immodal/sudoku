@@ -1,9 +1,15 @@
 // Grid functions
 const fnGrid = {
-  // Sets the value of a cell in a grid. Returns a copy instead of mutating original
+  // Sets the value of a cell in a grid.
   setValue: (grid, row, col, value) => {
     grid = fnGrid.copy(grid)
     grid.matrix[row][col] = value
+    return grid
+  },
+
+  setIsComplete: (grid, isComplete) => {
+    grid = fnGrid.copy(grid)
+    grid.isComplete = isComplete
     return grid
   },
 
@@ -61,8 +67,9 @@ const fnGrid = {
   },
 
   // Make a shallow copy of a given state
-  copy: ({ symbols, matrix }) => {
+  copy: ({ isComplete, symbols, matrix }) => {
     return {
+      isComplete: isComplete,
       symbols: symbols.concat(),
       matrix: fnMatrix.copy(matrix),
     }
@@ -74,9 +81,11 @@ const fnGrid = {
   // Generate a grid from a string
   importString: str => {
     const data = str.split("\n")
-    return {
+    const grid = {
       symbols: data[0].split(" "),
       matrix: data.slice(1).map(row => row.split(",")),
     }
+    grid.isComplete = fnGrid.validate(grid)
+    return grid
   }
 }

@@ -11,7 +11,7 @@ let p5Instance = new p5(sketch);
 
 let grid = fnGrid.importString(test99EasyGameA.input)
 console.log(fnMatrix.toString(grid.matrix))
-let solved = svDepthfs.solve(grid)
+let {grid: solved} = svDepthfs.solve(grid)
 console.log(fnMatrix.toString(solved.matrix))
 console.log(fnGrid.validate(solved))
 

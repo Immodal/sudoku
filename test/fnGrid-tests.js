@@ -2,11 +2,13 @@ fnGridTests = {
   'imports and exports grid from and to string': () => {
     const check = (str, exp) => {
       const grid = fnGrid.importString(str)
+      eq(exp.isComplete, grid.isComplete)
       eq(true, grid.symbols.every((s, i) => s==exp.symbols[i]))
       eq(true, grid.matrix.every((row, i) => row.every((v, j) => v == exp.matrix[i][j])))
       eq(str, fnGrid.exportString(grid))
     }
     const expGrid1 = {
+      isComplete: false,
       symbols: ["1", "2", "3", "4"],
       matrix: [
         [" ", "1", " ", "4"],
@@ -17,6 +19,7 @@ fnGridTests = {
     }
     check(test44EasyGameA.input, expGrid1)
     const expGrid2 = {
+      isComplete: true,
       symbols: ["1", "2", "3", "4"],
       matrix: [
         ["3", "1", "2", "4"],
@@ -26,14 +29,30 @@ fnGridTests = {
       ]
     }
     check(test44EasyGameA.complete, expGrid2)
+    const expGrid3 = {
+      isComplete: false,
+      symbols: ["1", "2", "3", "4"],
+      matrix: [
+        ["3", "1", "2", "4"],
+        ["4", "2", "1", "3"],
+        ["1", "3", "3", "2"],
+        ["2", "4", "3", "1"],
+      ]
+    }
+    check(test44EasyGameA.completeInvalid1, expGrid3)
   },
 
   'makes shallow copies': () => {
     let grid = fnGrid.importString(test44EasyGameA.input)
     let gridCopy = fnGrid.copy(grid)
+    // Check references
     eq(false, grid == gridCopy)
     eq(false, grid.symbols == gridCopy.symbols)
     grid.matrix.forEach((row, i) => eq(false, row == gridCopy.matrix[i]))
+    // Check values
+    eq(grid.isComplete, gridCopy.isComplete)
+    grid.symbols.forEach((s, i) => eq(s, gridCopy.symbols[i]))
+    grid.matrix.forEach((row, i) => row.forEach((v,j) => eq(v, gridCopy.matrix[i][j])))
   },
 
   'gets correct block length': () => {
