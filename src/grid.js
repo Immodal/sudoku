@@ -1,5 +1,13 @@
 // Grid functions
 const fnGrid = {
+  // Sets the value of a cell in a grid. Returns a copy instead of mutating original
+  setValue: (grid, row, col, value) => {
+    grid = fnGrid.copy(grid)
+    grid.matrix[row][col] = value
+    return grid
+  },
+
+  // Get the submatrix the cell at (row, col) belongs to
   getBlock: (matrix, row, col) => {
     const blockLength = fnGrid.getBlockLen(matrix)
     const rowOffset = row - (row % blockLength)

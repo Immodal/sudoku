@@ -13,36 +13,35 @@ let grid = fnGrid.importString(test99EasyGameA.input)
 
 const svDepthfs = {
   solve: grid => {
-    let curGrid = grid
-    let moves = svDepthfs.getMoves(curGrid) // using "moves" as stack
+    let states = svDepthfs.getNext(grid) // using "moves" as stack
     
-    while(moves.length>0) {
-      if (fnGrid.validate(curGrid)) break
-      const move = moves.pop()
-      curGrid = fnGrid.copy(move.grid)
-      curGrid.matrix[move.row][move.col] = move.value
-      moves = moves.concat(svDepthfs.getMoves(curGrid))
+    while(states.length>0) {
+      if (fnGrid.validate(grid)) break
+      else {
+        grid = states.pop()
+        states = states.concat(svDepthfs.getNext(grid))
+      }
     }
 
-    return curGrid
+    return grid
   },
 
-  getMoves: grid => {
-    const coords = svDepthfs.getEmpty(grid)
-    if (coords[0]<0) return []
+  getNext: grid => {
+    const {row, col} = svDepthfs.getEmptyCell(grid)
+    if (row<0) return []
     else {
       return grid.symbols
-        .filter(v => svDepthfs.isValidMove(grid.matrix, coords[0], coords[1], v))
-        .map(v => { return {row:coords[0], col:coords[1], value:v, grid:grid} })
+        .filter(v => svDepthfs.isValidMove(grid.matrix, row, col, v))
+        .map(v => fnGrid.setValue(grid, row, col, v))
     }
   },
 
-  getEmpty: ({ matrix }) => {
+  getEmptyCell: ({ matrix }) => {
     for (let i=0; i<matrix.length; i++) {
       const j = matrix[i].indexOf(" ")
-      if (j >= 0) return [i, j]
+      if (j >= 0) return {row:i, col:j}
     }
-    return [-1, -1]
+    return {row:-1, col:-1}
   },
 
   isValidMove: (matrix, row, col, value) => {
