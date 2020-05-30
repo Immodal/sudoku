@@ -7,16 +7,15 @@
 
   p.draw = () => {
   }
-}*/
+}
 
-let p5Instance = new p5(sketch);
+let p5Instance = new p5(sketch);*/
 
 
-let grid = fnGrid.importString(test99EasyGameA.complete)
-console.log(fnGrid.exportString(grid))
-/*
-console.log(fnMatrix.toString(grid.matrix))
-let {grid: solved} = svDepthfs.solve(grid)
-console.log(fnMatrix.toString(solved.matrix))
+let grid = fnGrid.importString(test99EasyGameA.input)
+
+console.log(fnMatrix.toString(grid.get("matrix")))
+let solved = svDepthfs.solve(grid)
+console.log(fnMatrix.toString(solved.get("matrix")))
 console.log(fnGrid.validate(solved))
-*/
+

@@ -1,43 +1,38 @@
 const svDepthfs = {
-  solve: (grid, states=null, stepped=false) => {
-    if (states==null) states = svDepthfs.getNext(grid) // using "states" as stack
-    else states = states.slice()
-    
-    while(states.length>0 && !grid.isComplete) {
-      if (fnGrid.validate(grid)) { 
-        return {grid: fnGrid.setIsComplete(grid, true), states: states}
-      } else {
-        grid = states.pop()
-        states = states.concat(svDepthfs.getNext(grid))
+  solve: grid => {
+    states = svDepthfs.getNext(grid) // using "states" as stack
+    while(states.count()>0) {
+      if (fnGrid.validate(grid)) break 
+      else {
+        grid = states.last()
+        states = states.pop().concat(svDepthfs.getNext(grid))
       }
-      if (stepped) break
     }
-
-    return {grid: fnGrid.copy(grid), states: states}
+    return grid
   },
 
   getNext: grid => {
     const {row, col} = svDepthfs.getEmptyCell(grid)
-    if (row<0) return []
+    if (row<0) return Immutable.List()
     else {
-      return grid.symbols
-        .filter(v => svDepthfs.isValidMove(grid.matrix, row, col, v))
+      return grid.get("symbols")
+        .filter(v => svDepthfs.isValidMove(grid, row, col, v))
         .map(v => fnGrid.setValue(grid, row, col, v))
+        .toList()
     }
   },
 
-  getEmptyCell: ({ matrix }) => {
-    for (let i=0; i<matrix.length; i++) {
-      const j = matrix[i].indexOf(" ")
-      if (j >= 0) return {row:i, col:j}
+  getEmptyCell: grid => {
+    const getCell = (matrix, i) => {
+      const j = matrix.get(i).indexOf(" ")
+      return j<0 ? (i+1<matrix.count() ? getCell(matrix, i+1) : {row:-1, col:-1}) : {row:i, col:j}
     }
-    return {row:-1, col:-1}
+    return getCell(grid.get("matrix"), 0)
   },
 
-  isValidMove: (matrix, row, col, value) => {
-    return !matrix[row].some(v => v==value) && // row
-      !matrix.some(row => row[col]==value) && // col
-      !fnGrid.getBlock(matrix, row, col).some(row => row.some(v => v==value)) // block
-  },
+  isValidMove: (grid, row, col, value) => 
+    !grid.get("matrix").get(row).some(v => v==value) && // row
+    !grid.get("matrix").some(row => row.get(col)==value) && // col
+    !fnGrid.getBlock(grid, row, col).some(row => row.some(v => v==value)), // block
 
 }
