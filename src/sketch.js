@@ -1,38 +1,102 @@
-/*const sketch = ( p ) => {
+
+const sketch = ( p ) => {
+  // Data Vars
+  let gridStr = test99EasyGameA.input
+  let data = svDepthfs.mkDataMap(fnGrid.importString(gridStr))
+  let solve = false
+  let solverMap = Immutable.Map({
+    "0": svDepthfs.solveStep
+  })
+
+  // Pre-allocate DOM component vars, cant bet inited until setup() is called
+  let canvas = null
+  let stepBtn = null
+  let solveBtn = null
+  let pauseBtn = null
+  let resetBtn = null
+  let solverRadio = null
+
+  // Get solver based on radio selection
+  const solveStep = data => solverMap.get(solverRadio.value())(data)
+
+  // Generic btn init fn
+  const initBtn = (label, parent, callback) => {
+    let btn = p.createButton(label)
+    btn.parent(parent)
+    btn.mousePressed(callback)
+    return btn
+  }
+
+  const initCanvas = () => {
+    canvas = p.createCanvas(400, 400)
+    canvas.parent("#cv")
+  }
+
+  const initCol1 = () => {
+    stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
+    solveBtn = initBtn("Solve", "#playbackBtns", () => solve = true)
+    pauseBtn = initBtn("Pause", "#playbackBtns", () => solve = false)
+    resetBtn = initBtn("Reset", "#playbackBtns", () => data = svDepthfs.mkDataMap(fnGrid.importString(gridStr)))
+    solverRadio = p.createRadio()
+    solverRadio.style('font-size', '13px')
+    solverRadio.parent("#solverRadios")
+    solverRadio.option("Depth First Search", "0")
+    solverRadio.value("0") // Must be string
+  }
+
   p.setup = () => {
-    p.createCanvas(400, 400);
-    p.background(153);
-    p.line(0, 0, p.width, p.height);
+    initCanvas()
+    initCol1()
   }
 
   p.draw = () => {
+    p.background(240)
+    p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
+    if (solve) data = solveStep(data)
   }
 }
 
-let p5Instance = new p5(sketch);*/
+const p5Grid = {
+  // Draw Grid is a given p5 canvas
+  draw: (p, grid, x, y, w, h) => {
+    const matrix = grid.get("matrix")
+    const nCols = matrix.get(0).count()
+    const nRows = matrix.count()
+    // Draw Cells
+    const cellW = w/nCols
+    const cellH = h/nRows
+    matrix.map((row, j) => row.map((v, i) => p5Grid.drawCell(p, v, x+i*cellW, y+j*cellH, cellW, cellH)))
+    // Draw Blocks
+    const blockLen = fnGrid.getBlockLen(grid)
+    const blockW = blockLen * cellW
+    const blockH = blockLen * cellH
+    // Get X and Y intervals for blocks
+    const blockXs = Immutable.Range(x, x+w, blockW)
+    const blockYs = Immutable.Range(y, y+h, blockH)
+    blockYs.forEach(by => blockXs.forEach(bx => p5Grid.drawBlock(p, bx, by, blockW, blockH)))
+  },
 
+  // Draw a single cell with its text value inside
+  drawCell: (p, v, x, y, w, h) => {
+    // Cell
+    p.noFill()
+    p.stroke(0)
+    p.strokeWeight(1)
+    p.rect(x, y, w, h)
+    // Text
+    p.fill(0)
+    p.textAlign(p.CENTER, p.CENTER)
+    p.textSize(16);
+    p.text(v, x+w/2, y+h/2)
+  },
 
-let grid = fnGrid.importString(test99EasyGameA.input)
+  // Draw a single block
+  drawBlock: (p, x, y, w, h) => {
+    p.noFill()
+    p.stroke(0)
+    p.strokeWeight(4)
+    p.rect(x, y, w, h)
+  }
+}
 
-console.log(fnMatrix.toString(grid.get("matrix")))
-let solved = svDepthfs.solve(grid)
-solved = svDepthfs.solve2(grid)
-solved = svDepthfs.solve3(grid)
-
-console.time('Iteration')
-solved = svDepthfs.solve(grid)
-console.timeEnd('Iteration')
-console.time('Recursion')
-let solved2 = svDepthfs.solve2(grid)
-console.timeEnd('Recursion')
-console.time('Hybrid')
-let solved3 = svDepthfs.solve3(grid)
-console.timeEnd('Hybrid')
-console.log(fnGrid.validate(solved))
-console.log(fnMatrix.toString(solved.get("matrix")))
-console.log(fnGrid.validate(solved2))
-console.log(fnMatrix.toString(solved2.get("matrix")))
-console.log(fnGrid.validate(solved3))
-console.log(fnMatrix.toString(solved3.get("matrix")))
-
-
+let p5Instance = new p5(sketch);

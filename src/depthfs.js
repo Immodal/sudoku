@@ -1,17 +1,19 @@
 const svDepthfs = {
   // Impure Iterative Solver
   solve: grid => {
-    data = Immutable.Map({
-      grid: grid,
-      moves: svDepthfs.getNext(grid), // using "moves" as a stack
-    })
+    data = svDepthfs.mkDataMap(grid)
     // Loop until solution found or exhausted all options
     while(!data.getIn(["grid","isComplete"]) && data.get("moves").count()>0) {
       data = svDepthfs.solveStep(data)
     }
-
     return data.get("grid")
   },
+
+  // Make data object used in Iterative solver
+  mkDataMap: grid => Immutable.Map({
+    grid: grid,
+    moves: svDepthfs.getNext(grid), // using "moves" as a stack
+  }),
 
   // Move the iterative algorithm forward one step
   // This seperate from the function to allow stepping for visualization
