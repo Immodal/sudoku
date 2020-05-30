@@ -22,12 +22,10 @@ const svDepthfs = {
     }
   },
 
-  getEmptyCell: grid => {
-    const getCell = (matrix, i) => {
-      const j = matrix.get(i).indexOf(" ")
-      return j<0 ? (i+1<matrix.count() ? getCell(matrix, i+1) : {row:-1, col:-1}) : {row:i, col:j}
-    }
-    return getCell(grid.get("matrix"), 0)
+  getEmptyCell: (grid, i=0) => {
+    const matrix = grid.get("matrix")
+    const j = matrix.get(i).indexOf(" ")
+    return j<0 ? (i+1<matrix.count() ? svDepthfs.getEmptyCell(grid, i+1) : {row:-1, col:-1}) : {row:i, col:j}
   },
 
   isValidMove: (grid, row, col, value) => 
