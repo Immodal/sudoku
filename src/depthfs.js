@@ -1,11 +1,60 @@
 const svDepthfs = {
+  // Impure Iterative Solver
   solve: grid => {
-    states = svDepthfs.getNext(grid) // using "states" as stack
-    while(states.count()>0) {
-      if (fnGrid.validate(grid)) break 
+    data = Immutable.Map({
+      grid: grid,
+      moves: svDepthfs.getNext(grid), // using "moves" as a stack
+    })
+    // Loop until solution found or exhausted all options
+    while(!data.getIn(["grid","isComplete"]) && data.get("moves").count()>0) {
+      data = svDepthfs.solveStep(data)
+    }
+
+    return data.get("grid")
+  },
+
+  // Move the iterative algorithm forward one step
+  // This seperate from the function to allow stepping for visualization
+  solveStep: data => {
+    const grid = data.get("grid")
+    const moves = data.get("moves")
+    // If grid is a valid solution, update its status
+    if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
+    else {
+      // Otherwise add the moves from current grid and grab the first one in the stack
+      const newMoves = moves.concat(svDepthfs.getNext(grid))
+      return data
+        .set("grid", newMoves.last())
+        .set("moves", newMoves.pop())
+    }
+  },
+
+  // Pure Functional Solver, 
+  // Can easily cause stack overflow for large problems due to lack of tail call optimization in JS
+  // Max recursion depth will equal the total number of moves examined
+  solve2: grid => {
+    const _solve = (grid, moves) => {
+      if (grid.get("isComplete") || moves.count()<=0) return grid
+      else if (fnGrid.validate(grid)) return grid.set("isComplete", true)
       else {
-        grid = states.last()
-        states = states.pop().concat(svDepthfs.getNext(grid))
+        const newMoves = moves.concat(svDepthfs.getNext(grid))
+        return _solve(newMoves.last(), newMoves.pop())
+      }
+    }
+    return _solve(grid, svDepthfs.getNext(grid))
+  },
+
+  // Impure Recursive Solver
+  // The for loop helps limit stack depth to number of moves needed to complete puzzle
+  solve3: grid => {
+    if (fnGrid.validate(grid)) return grid.set("isComplete", true)
+    else {
+      const moves = svDepthfs.getNext(grid)
+      for (let i=0; i<moves.count(); i++) {
+        grid = svDepthfs.solve2(moves.get(i))
+        if (grid.get("isComplete")) {
+          break
+        }
       }
     }
     return grid
