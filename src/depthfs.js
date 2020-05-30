@@ -60,20 +60,24 @@ const svDepthfs = {
     return grid
   },
 
+  // Get the next available moves from this grid grid
   getNext: grid => {
+    // Get the position of next empty cell
     const {row, col} = svDepthfs.getEmptyCell(grid)
     if (row<0) return Immutable.List()
     else {
-      return grid.get("symbols")
-        .filter(v => svDepthfs.isValidMove(grid, row, col, v))
-        .map(v => fnGrid.setValue(grid, row, col, v))
-        .toList()
+      return grid.get("symbols") // For all symbols,
+        .filter(v => svDepthfs.isValidMove(grid, row, col, v)) // filter for only the ones that are valid
+        .map(v => fnGrid.setValue(grid, row, col, v)) // get new grids with the valid symbols added to the position
+        .toList() // Convert from Set to List
     }
   },
 
+  // Get position of next empty cell, top to bottom, left to right.
   getEmptyCell: (grid, i=0) => {
     const matrix = grid.get("matrix")
     const j = matrix.get(i).indexOf(" ")
+    // if j<0, recurse further into the grid, else return coordinates of (i,j)
     return j<0 ? (i+1<matrix.count() ? svDepthfs.getEmptyCell(grid, i+1) : {row:-1, col:-1}) : {row:i, col:j}
   },
 
