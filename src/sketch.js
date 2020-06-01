@@ -3,10 +3,12 @@ const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
 
   // Data Vars
-  let data = svDepthfs.mkDataMap(fnGrid.importString(test99EasyGameA.input))
+  let dataStart = basicSearch.mkDataMap(fnGrid.importString(test99EasyGameA.input))
+  let data = dataStart
   let solve = false
   let solverMap = Immutable.Map({
-    "0": svDepthfs.solveStep
+    "dfs": basicSearch.solveStep(false),
+    "bfs": basicSearch.solveStep(true)
   })
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
@@ -38,7 +40,10 @@ const sketch = ( p ) => {
   const initCol1 = () => {
     getNewBtn = initBtn("Get New", "#loaderBtns", () => 
       p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
-      .then(resp => data = svDepthfs.mkDataMap(fnGrid.importJSON(resp))))
+      .then(resp => {
+        dataStart = basicSearch.mkDataMap(fnGrid.importJSON(resp))
+        data = dataStart
+      }))
     difficultyRadio = p.createRadio()
     difficultyRadio.style("padding-left", "1em")
     difficultyRadio.style("display", "inline")
@@ -52,12 +57,13 @@ const sketch = ( p ) => {
     stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
     solveBtn = initBtn("Solve", "#playbackBtns", () => solve = true)
     pauseBtn = initBtn("Pause", "#playbackBtns", () => solve = false)
-    resetBtn = initBtn("Reset", "#playbackBtns", () => data = svDepthfs.mkDataMap(fnGrid.importString(gridStr)))
+    resetBtn = initBtn("Reset", "#playbackBtns", () => data = dataStart)
     solverRadio = p.createRadio()
     solverRadio.style('font-size', '13px')
     solverRadio.parent("#solverRadios")
-    solverRadio.option("Depth First Search", "0")
-    solverRadio.value("0") // Must be string
+    solverRadio.option("Depth First Search", "dfs")
+    solverRadio.option("Breadth First Search", "bfs")
+    solverRadio.value("dfs")
   }
 
   p.setup = () => {
