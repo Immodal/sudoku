@@ -68,6 +68,14 @@ const fnGrid = {
       matrix: Immutable.List(data.slice(1).map(row => Immutable.List(row.split(",")))),
     })
     return grid.set("isComplete", fnGrid.validate(grid))
-    //return grid
+  },
+
+  // Generate a grid from a JSON string queried from https://sugoku.herokuapp.com/board
+  importJSON: str => {
+    const grid = Immutable.Map({
+      symbols: Immutable.Set(["1","2","3","4","5","6","7","8","9"]),
+      matrix: Immutable.fromJS(JSON.parse(str).board.map(row => row.map(n => n==0 ? " " : String(n)))),
+    })
+    return grid.set("isComplete", fnGrid.validate(grid))
   }
 }

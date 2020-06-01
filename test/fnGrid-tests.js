@@ -1,8 +1,34 @@
 fnGridTests = {
+  'imports grid from JSON string': () => {
+    const check = (str, exp) => {
+      const grid = fnGrid.importJSON(str)
+      eq(exp.get("isComplete"), grid.get("isComplete"))
+      eq(true, Immutable.is(grid.get("symbols"), exp.get("symbols")))
+      eq(true, Immutable.is(grid.get("matrix"), exp.get("matrix")))
+    }
+    const input = `{"board":[[0,0,0,0,6,0,0,0,0],[0,0,0,0,5,8,6,0,0],[0,0,0,0,0,0,0,3,5],[0,1,3,4,0,0,0,6,0],[0,6,0,8,0,1,0,2,7],[8,0,7,6,0,3,4,5,1],[5,3,1,9,0,2,0,4,6],[0,0,0,5,3,4,0,0,2],[0,4,2,0,0,0,5,0,3]]}`
+    const expGrid1 = Immutable.fromJS({
+      isComplete: false,
+      symbols: Immutable.Set(["1", "2", "3", "4", "5", "6", "7", "8", "9"]),
+      matrix: [
+        [" ", " ", " ", " ", "6", " ", " ", " ", " "],
+        [" ", " ", " ", " ", "5", "8", "6", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", "3", "5"],
+        [" ", "1", "3", "4", " ", " ", " ", "6", " "],
+        [" ", "6", " ", "8", " ", "1", " ", "2", "7"],
+        ["8", " ", "7", "6", " ", "3", "4", "5", "1"],
+        ["5", "3", "1", "9", " ", "2", " ", "4", "6"],
+        [" ", " ", " ", "5", "3", "4", " ", " ", "2"],
+        [" ", "4", "2", " ", " ", " ", "5", " ", "3"],
+      ]
+    })
+    check(input, expGrid1)
+  },
+
   'imports and exports grid from and to string': () => {
     const check = (str, exp) => {
       const grid = fnGrid.importString(str)
-      //eq(exp.get("isComplete"), grid.get("isComplete"))
+      eq(exp.get("isComplete"), grid.get("isComplete"))
       eq(true, Immutable.is(grid.get("symbols"), exp.get("symbols")))
       eq(true, Immutable.is(grid.get("matrix"), exp.get("matrix")))
       eq(str, fnGrid.exportString(grid))
