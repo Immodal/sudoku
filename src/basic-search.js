@@ -49,25 +49,6 @@ const basicSearch = {
     return _solve(grid, basicSearch.getNext(grid))
   },
 
-  // Impure Recursive Solver
-  // The for loop helps limit stack depth to number of moves needed to complete puzzle
-  solve3: isBfs =>  grid => {
-    if (fnGrid.validate(grid)) return grid.set("isComplete", true)
-    else {
-      const moves = basicSearch.getNext(grid)
-      for (
-          let i= isBfs ? 0 : moves.count(); 
-          isBfs ? i>=0 : i<moves.count(); 
-          isBfs ? i-- : i++) {
-        grid = basicSearch.solve2(moves.get(i))
-        if (grid.get("isComplete")) {
-          break
-        }
-      }
-    }
-    return grid
-  },
-
   // Get the next available moves from this grid grid
   getNext: grid => {
     // Get the position of next empty cell

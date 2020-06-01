@@ -4,16 +4,16 @@
 <script src="test-games.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/grid.js"></script>
-<script src="../src/depthfs.js"></script>
+<script src="../src/basic-search.js"></script>
 <!--<script src="../src/sketch.js"></script> -->
 <script src="fnMatrix-tests.js"></script>
 <script src="fnGrid-tests.js"></script>
-<script src="svDepthfs-tests.js"></script>
+<script src="basicSearch-tests.js"></script>
 <script>
   let testObj = {}
   Object.assign(testObj, fnMatrixTests)
   Object.assign(testObj, fnGridTests)
-  Object.assign(testObj, svDepthfsTests)
+  Object.assign(testObj, basicSearchTests)
   // Run
   tests(testObj)
 </script>
