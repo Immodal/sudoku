@@ -1,23 +1,4 @@
-basicSearchTests = {
-  'checks if a move is valid': () => {
-    let grid = fnGrid.importString(test99EasyGameA.input)
-    eq(true, basicSearch.isValidMove(grid, 8, 8, "4"))
-    eq(true, basicSearch.isValidMove(grid, 8, 8, "7"))
-    eq(false, basicSearch.isValidMove(grid, 8, 8, "3")) // row
-    eq(false, basicSearch.isValidMove(grid, 8, 8, "6")) // col
-    eq(false, basicSearch.isValidMove(grid, 8, 8, "1")) // block
-  },
-
-  'finds empty cells': () => {
-    let grid = fnGrid.importString(test99EasyGameA.input)
-    let {row:r, col:c} = basicSearch.getEmptyCell(grid)
-    eq(0, r)
-    eq(0, c)
-    grid = fnGrid.importString(test44HardGameA.input)
-    let {row:r1, col:c1} = basicSearch.getEmptyCell(grid)
-    eq(0, r1)
-    eq(2, c1)
-  },
+const basicSearchTests = {
 
   'gets the next available moves from a grid': () => {
     const grid = fnGrid.importString(test44EasyGameA.input)
@@ -37,16 +18,17 @@ basicSearchTests = {
     eq(true, Immutable.is(exp, moves.get(0)))
   },
 
-  'solvers work': () => {
-    const check = (strIn, strOut, solver) => eq(strOut, fnGrid.exportString(solver(fnGrid.importString(strIn))))
-    solvers = [basicSearch.solve, basicSearch.solve2]
-    for (let i=0; i<solvers.length; i++) {
-      check(test44EasyGameA.input, test44EasyGameA.complete, solvers[i](false))
-      check(test44EasyGameA.input, test44EasyGameA.complete, solvers[i](true))
-      check(test44HardGameA.input, test44HardGameA.complete, solvers[i](false))
-      check(test44HardGameA.input, test44HardGameA.complete, solvers[i](true))
-      check(test99EasyGameA.input, test99EasyGameA.complete, solvers[i](false))
-      check(test99EasyGameA.input, test99EasyGameA.complete, solvers[i](true))
+  'solver works': () => {
+    const check = (strIn, strOut, solver) => {
+      data = basicSearch.mkDataMap(fnGrid.importString(strIn))
+      eq(strOut, fnGrid.exportString(solver(data).get("grid")))
     }
+
+    check(test44EasyGameA.input, test44EasyGameA.complete, basicSearch.solve(false))
+    check(test44EasyGameA.input, test44EasyGameA.complete, basicSearch.solve(true))
+    check(test44HardGameA.input, test44HardGameA.complete, basicSearch.solve(false))
+    check(test44HardGameA.input, test44HardGameA.complete, basicSearch.solve(true))
+    check(test99EasyGameA.input, test99EasyGameA.complete, basicSearch.solve(false))
+    check(test99EasyGameA.input, test99EasyGameA.complete, basicSearch.solve(true))
   },
 }

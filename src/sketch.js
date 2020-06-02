@@ -1,35 +1,56 @@
-let a = null
+let QAZ = null
+
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
+  const DFS = "depthfs"
+  const BFS = "breadthfs"
+  const GS = "greedys"
 
   // Data Vars
-  let dataStart = basicSearch.mkDataMap(fnGrid.importString(test99EasyGameA.input))
-  let data = dataStart
-  let solve = false
-  let solverMap = Immutable.Map({
-    "dfs": basicSearch.solveStep(false),
-    "bfs": basicSearch.solveStep(true)
-  })
+  let input_grid = fnGrid.importString(test99EasyGameA.input)
+  let data = null
+  let dataMap = Immutable.Map()
+    .set(DFS, basicSearch.mkDataMap)
+    .set(BFS, basicSearch.mkDataMap)
+    .set(GS, greedySearch.mkDataMap)
+
+  let runSolve = false
+  let solveMap = Immutable.Map()
+    .set(DFS, basicSearch.solve(false))
+    .set(BFS, basicSearch.solve(true))
+    .set(GS, greedySearch.solve)
+
+  let solveStepMap = Immutable.Map()
+    .set(DFS, basicSearch.solveStep(false))
+    .set(BFS, basicSearch.solveStep(true))
+    .set(GS, greedySearch.solveStep)
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null
   let getNewBtn = null
   let difficultyRadio = null
+
+  let stepCounter = null
   let stepBtn = null
   let solveBtn = null
   let pauseBtn = null
   let resetBtn = null
+  let disableVisCb = null
   let solverRadio = null
 
-  // Get solver based on radio selection
-  const solveStep = data => solverMap.get(solverRadio.value())(data)
+  // Get data mapper based on solver radio selection
+  const mkDataMap = grid => dataMap.get(solverRadio.value())(grid)
+  // Get solver based on solver radio selection
+  const solve = data => solveMap.get(solverRadio.value())(data)
+  const solveStep = data => solveStepMap.get(solverRadio.value())(data)
 
-  // Generic btn init fn
-  const initBtn = (label, parent, callback) => {
-    let btn = p.createButton(label)
-    btn.parent(parent)
-    btn.mousePressed(callback)
-    return btn
+  // Generic btn/cb init fn
+  const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
+  const initCb = (label, value, parent, callback=()=>{}) => initInteractive(p.createCheckbox(label, value), parent, callback)
+  const initInteractive = (obj, parent, callback) => {
+    obj.parent(parent)
+    obj.mousePressed(callback)
+    return obj
   }
 
   const initCanvas = () => {
@@ -37,44 +58,73 @@ const sketch = ( p ) => {
     canvas.parent("#cv")
   }
 
-  const initCol1 = () => {
-    getNewBtn = initBtn("Get New", "#loaderBtns", () => 
-      p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
-      .then(resp => {
-        dataStart = basicSearch.mkDataMap(fnGrid.importJSON(resp))
-        data = dataStart
-      }))
-    difficultyRadio = p.createRadio()
-    difficultyRadio.style("padding-left", "1em")
-    difficultyRadio.style("display", "inline")
-    difficultyRadio.style("font-size", "13px")
-    difficultyRadio.parent("#loaderBtns")
-    difficultyRadio.option("Easy", "easy")
-    difficultyRadio.option("Medium", "medium")
-    difficultyRadio.option("Hard", "hard")
-    difficultyRadio.value("easy")
-
-    stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
-    solveBtn = initBtn("Solve", "#playbackBtns", () => solve = true)
-    pauseBtn = initBtn("Pause", "#playbackBtns", () => solve = false)
-    resetBtn = initBtn("Reset", "#playbackBtns", () => data = dataStart)
-    solverRadio = p.createRadio()
-    solverRadio.style('font-size', '13px')
-    solverRadio.parent("#solverRadios")
-    solverRadio.option("Depth First Search", "dfs")
-    solverRadio.option("Breadth First Search", "bfs")
-    solverRadio.value("dfs")
-  }
-
   p.setup = () => {
+    const initPuzzleLoader = () => {
+      getNewBtn = initBtn("Get New", "#loaderBtns", () => 
+        p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
+        .then(resp => {
+          input_grid = fnGrid.importJSON(resp)
+          data = mkDataMap(input_grid)
+        }))
+      difficultyRadio = p.createRadio()
+      difficultyRadio.style("padding-left", "1em")
+      difficultyRadio.style("display", "inline")
+      difficultyRadio.style("font-size", "13px")
+      difficultyRadio.parent("#loaderBtns")
+      difficultyRadio.option("Easy", "easy")
+      difficultyRadio.option("Medium", "medium")
+      difficultyRadio.option("Hard", "hard")
+      difficultyRadio.value("easy")
+    }
+
+    const initPlaybackControl = () => {
+      stepCounter = p.createSpan("0")
+      stepCounter.parent("#stepCount")
+      //stepCounter.style("display", "inline")
+      stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
+      solveBtn = initBtn("Solve", "#playbackBtns", () => runSolve = true)
+      pauseBtn = initBtn("Pause", "#playbackBtns", () => runSolve = false)
+      resetBtn = initBtn("Reset", "#playbackBtns", () => data = mkDataMap(input_grid))
+      disableVisCb = initCb('Disable \"Solve\" Visualization (May cause reduced responsiveness)', false, "#playbackBtns");
+      disableVisCb.style("font-size", "13px")
+    }
+
+    const initSolverSelect = () => {
+      solverRadio = p.createRadio()
+      solverRadio.style('font-size', '13px')
+      solverRadio.parent("#solverRadios")
+      solverRadio.option("Depth First", DFS)
+      solverRadio.option("Breadth First", BFS)
+      solverRadio.option("Greedy", GS)
+      solverRadio.value(DFS)
+      solverRadio.changed(() => data = mkDataMap(input_grid))
+    }
+
+    const initCol1 = () => {
+      initPuzzleLoader()
+      initPlaybackControl()
+      initSolverSelect()
+    }
+
     initCanvas()
     initCol1()
+    data = mkDataMap(input_grid)
   }
 
   p.draw = () => {
     p.background(240)
     p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
-    if (solve) data = solveStep(data)
+    if (runSolve) {
+      if (!disableVisCb.checked()) {
+        data = solveStep(data)
+      } else {
+        data = solve(data)
+      }
+      if (data.get("grid").get("isComplete")) {
+        runSolve = false
+      }
+    }
+    stepCounter.html(data.get("steps"))
   }
 }
 
@@ -122,3 +172,4 @@ const p5Grid = {
 }
 
 let p5Instance = new p5(sketch);
+

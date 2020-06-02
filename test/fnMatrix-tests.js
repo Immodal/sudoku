@@ -1,4 +1,4 @@
-fnMatrixTests = {
+const fnMatrixTests = {
   'transposes a matrix': () => {
     let exp1 = Immutable.fromJS([[1,2,3]])
     let exp2 = Immutable.fromJS([[1],[2],[3]])

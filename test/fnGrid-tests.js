@@ -1,4 +1,4 @@
-fnGridTests = {
+const fnGridTests = {
   'imports grid from JSON string': () => {
     const check = (str, exp) => {
       const grid = fnGrid.importJSON(str)
