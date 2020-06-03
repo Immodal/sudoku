@@ -1,5 +1,7 @@
 // generic Matrix ops
 const fnMatrix = {
+  // Make a matrix with nRow rows and nCol cols filled with v
+  mkFill: (nRow, nCol, v) => Immutable.fromJS(Array.from(Array(nRow), _ => Array.from(Array(nCol), _ => v))),
   // Get a copy of a subsection of the matrix
   submatrix: (matrix, row, col, rowLength, colLength) => 
     matrix

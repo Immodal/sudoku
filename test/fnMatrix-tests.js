@@ -1,4 +1,27 @@
 const fnMatrixTests = {
+  'makes and fills a matrix of the correct size and fills it': () => {
+    let exp1 = Immutable.fromJS([
+      [5,5,5,5],
+      [5,5,5,5],
+    ])
+    eq(true, Immutable.is(fnMatrix.mkFill(2,4,5), exp1))
+    let exp2 = Immutable.fromJS([
+      [3,3,3],
+      [3,3,3],
+      [3,3,3],
+      [3,3,3],
+      [3,3,3],
+    ])
+    eq(true, Immutable.is(fnMatrix.mkFill(5,3,3), exp2))
+    let exp3 = Immutable.fromJS([
+      [9,9,9,9],
+      [9,9,9,9],
+      [9,9,9,9],
+      [9,9,9,9],
+    ])
+    eq(true, Immutable.is(fnMatrix.mkFill(4,4,9), exp3))
+  },
+
   'transposes a matrix': () => {
     let exp1 = Immutable.fromJS([[1,2,3]])
     let exp2 = Immutable.fromJS([[1],[2],[3]])
