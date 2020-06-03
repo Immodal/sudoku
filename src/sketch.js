@@ -1,4 +1,3 @@
-let QAZ = null
 
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
@@ -93,10 +92,10 @@ const sketch = ( p ) => {
       solverRadio = p.createRadio()
       solverRadio.style('font-size', '13px')
       solverRadio.parent("#solverRadios")
+      solverRadio.option("Greedy", GS)
       solverRadio.option("Depth First", DFS)
       solverRadio.option("Breadth First", BFS)
-      solverRadio.option("Greedy", GS)
-      solverRadio.value(DFS)
+      solverRadio.value(GS)
       solverRadio.changed(() => data = mkDataMap(input_grid))
     }
 
