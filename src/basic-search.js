@@ -75,6 +75,8 @@ const basicSearch = {
 
       if (cell==" ") {
         const validMoves = symbols.filter(v => fnSearch.isValidMove(grid, i, j, v))
+        // *Important* If there are no valid moves in an empty cell, then all moves stemming from
+        // this particular grid will be invalid anyway, so just return an empty heap
         if(validMoves.count()<=0) return Heap()
         else {
           const newGrids = validMoves.map(v => fnGrid.setValue(grid, i, j, v)).toList()
@@ -82,7 +84,8 @@ const basicSearch = {
         }
       } else return getMoves(iNew, jNew, heap)
     }
-    
+    // A heap is actually not necessary, I just wanted to try to code one.
+    // For max efficiency, just pass along the list of moves with the smallest size in its place.
     const sorted = getMoves(0, 0, Heap([], (a, b) => a.count()<b.count()))
     return sorted.count()>0 ? sorted.peek() : Immutable.List()
   },
