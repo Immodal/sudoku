@@ -9,20 +9,20 @@ const sketch = ( p ) => {
   let input_grid = fnGrid.importString(test99EasyGameA.input)
   let data = null
   let dataMap = Immutable.Map()
-    .set(DFS, basicSearch.mkDataMap)
-    .set(BFS, basicSearch.mkDataMap)
-    .set(GS, greedySearch.mkDataMap)
+    .set(DFS, basicSearch.mkDataMap(false))
+    .set(BFS, basicSearch.mkDataMap(false))
+    .set(GS, basicSearch.mkDataMap(true))
 
   let runSolve = false
   let solveMap = Immutable.Map()
-    .set(DFS, basicSearch.solve(false))
-    .set(BFS, basicSearch.solve(true))
-    .set(GS, greedySearch.solve)
+    .set(DFS, basicSearch.solve(false, false))
+    .set(BFS, basicSearch.solve(true, false))
+    .set(GS, basicSearch.solve(false, true))
 
   let solveStepMap = Immutable.Map()
     .set(DFS, basicSearch.solveStep(false))
     .set(BFS, basicSearch.solveStep(true))
-    .set(GS, greedySearch.solveStep)
+    .set(GS, basicSearch.solveStep(false, true))
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null

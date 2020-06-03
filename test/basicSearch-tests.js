@@ -19,16 +19,36 @@ const basicSearchTests = {
   },
 
   'solver works': () => {
-    const check = (strIn, strOut, solver) => {
-      data = basicSearch.mkDataMap(fnGrid.importString(strIn))
-      eq(strOut, fnGrid.exportString(solver(data).get("grid")))
+    const checkDfs = (strIn, strOut) => {
+      data = basicSearch.mkDataMap(false)(fnGrid.importString(strIn))
+      eq(strOut, fnGrid.exportString(basicSearch.solve(false, false)(data).get("grid")))
     }
 
-    check(test44EasyGameA.input, test44EasyGameA.complete, basicSearch.solve(false))
-    check(test44EasyGameA.input, test44EasyGameA.complete, basicSearch.solve(true))
-    check(test44HardGameA.input, test44HardGameA.complete, basicSearch.solve(false))
-    check(test44HardGameA.input, test44HardGameA.complete, basicSearch.solve(true))
-    check(test99EasyGameA.input, test99EasyGameA.complete, basicSearch.solve(false))
-    check(test99EasyGameA.input, test99EasyGameA.complete, basicSearch.solve(true))
+    const checkBfs = (strIn, strOut) => {
+      data = basicSearch.mkDataMap(false)(fnGrid.importString(strIn))
+      eq(strOut, fnGrid.exportString(basicSearch.solve(true, false)(data).get("grid")))
+    }
+
+    const checkGreedyDfs = (strIn, strOut) => {
+      data = basicSearch.mkDataMap(true)(fnGrid.importString(strIn))
+      eq(strOut, fnGrid.exportString(basicSearch.solve(false, true)(data).get("grid")))
+    }
+
+    const checkGreedyBfs = (strIn, strOut) => {
+      data = basicSearch.mkDataMap(true)(fnGrid.importString(strIn))
+      eq(strOut, fnGrid.exportString(basicSearch.solve(true, true)(data).get("grid")))
+    }
+
+    const check = (strIn, strOut) => {
+      checkDfs(strIn, strOut)
+      checkBfs(strIn, strOut)
+      checkGreedyDfs(strIn, strOut)
+      checkGreedyBfs(strIn, strOut)
+    }
+
+
+    check(test44EasyGameA.input, test44EasyGameA.complete)
+    check(test44HardGameA.input, test44HardGameA.complete)
+    check(test99EasyGameA.input, test99EasyGameA.complete)
   },
 }
