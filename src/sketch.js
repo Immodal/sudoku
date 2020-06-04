@@ -121,9 +121,11 @@ const sketch = ( p ) => {
     if (nFFWDs>0) {
       while (nFFWDs>0){
         data = solveStep(data)
-        setNSteps(nSteps+1)
         if (basicSearch.isFinished(data.get("grid"),data.get("moves"))) nFFWDs = 0
-        else nFFWDs--
+        else {
+          setNSteps(nSteps+1)
+          nFFWDs--
+        }
       }
     }
     if (runSolve) {
