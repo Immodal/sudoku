@@ -4,6 +4,7 @@ const sketch = ( p ) => {
   const DFS = "depthfs"
   const BFS = "breadthfs"
   const GS = "greedys"
+  const AX = "algox"
 
   // Data Vars
   let input_grid = fnGrid.importString(test99EasyGameA.input)
@@ -12,6 +13,7 @@ const sketch = ( p ) => {
     .set(DFS, basicSearch.mkDataMap(false))
     .set(BFS, basicSearch.mkDataMap(false))
     .set(GS, basicSearch.mkDataMap(true))
+    .set(AX, algoX.mkDataMap)
 
   let runSolve = false
   let nSteps = 0
@@ -21,6 +23,13 @@ const sketch = ( p ) => {
     .set(DFS, basicSearch.solveStep(false))
     .set(BFS, basicSearch.solveStep(true))
     .set(GS, basicSearch.solveStep(false, true))
+    .set(AX, algoX.solveStep)
+
+  let isFinishedMap = Immutable.Map()
+    .set(DFS, basicSearch.isFinished)
+    .set(BFS, basicSearch.isFinished)
+    .set(GS, basicSearch.isFinished)
+    .set(AX, algoX.isFinished)
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null
@@ -49,6 +58,22 @@ const sketch = ( p ) => {
   }
   // Get solver based on solver selection
   const solveStep = data => solveStepMap.get(solverSelect.value())(data)
+
+  const isFinished = data => {
+    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
+      return isFinishedMap.get(solverSelect.value())(data.get("grid"),data.get("moves"))
+    } else {
+      return isFinishedMap.get(solverSelect.value())(data)
+    }
+  }
+
+  const getGrid = data => {
+    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
+      return data.get("grid")
+    } else {
+      return data.getIn(["state", "grid"])
+    }
+  }
 
   // Generic btn/cb init fn
   const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
@@ -97,6 +122,7 @@ const sketch = ( p ) => {
       solverSelect = p.createSelect()
       solverSelect.style('font-size', '13px')
       solverSelect.parent("#solverSelect")
+      solverSelect.option("Algorithm X", AX)
       solverSelect.option("Greedy Depth First", GS)
       solverSelect.option("Naive Depth First", DFS)
       solverSelect.option("Breadth First (Not recommended)", BFS)
@@ -117,11 +143,11 @@ const sketch = ( p ) => {
 
   p.draw = () => {
     p.background(240)
-    p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
+    p5Grid.draw(p, getGrid(data), 0, 0, 400, 400)
     if (nFFWDs>0) {
       while (nFFWDs>0){
         data = solveStep(data)
-        if (basicSearch.isFinished(data.get("grid"),data.get("moves"))) nFFWDs = 0
+        if (isFinished(data)) nFFWDs = 0
         else {
           setNSteps(nSteps+1)
           nFFWDs--
@@ -129,7 +155,7 @@ const sketch = ( p ) => {
       }
     }
     if (runSolve) {
-      if (basicSearch.isFinished(data.get("grid"),data.get("moves"))) {
+      if (isFinished(data)) {
         runSolve = false
         nFFWDs = 0
       } else {
@@ -184,4 +210,3 @@ const p5Grid = {
 }
 
 let p5Instance = new p5(sketch);
-
