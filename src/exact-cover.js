@@ -30,13 +30,17 @@ const exactCover = {
     // This constraint is satisfied when a v exists in a given b.
     const nBlocksInGrid = gMatrix.count()
     const nBlockConCols = nBlocksInGrid * symbols.count()
+    // Starting Columns for each constraint section
+    const cellConStartCol = 0
+    const rowConStartCol = nCellConCols
+    const colConStartCol = nCellConCols + nRowConCols
+    const blockConStartCol = nCellConCols + nRowConCols + nColConCols
 
-    let matrix = fnMatrix.mkFill(nRows, nCellConCols + nRowConCols + nColConCols + nBlockConCols, 0)
-    matrix = exactCover.setCellConstraints(matrix, grid, 0)
-    matrix = exactCover.setRowConstraints(matrix, grid, nCellConCols)
-    matrix = exactCover.setColConstraints(matrix, grid, nCellConCols + nRowConCols)
-    matrix = exactCover.setBlockConstraints(matrix, grid, nCellConCols + nRowConCols + nColConCols)
-    return matrix
+    return fnMatrix.mkFill(nRows, nCellConCols + nRowConCols + nColConCols + nBlockConCols, 0)
+      .withMutations(mutable => exactCover._setCellConstraints(mutable, grid, cellConStartCol))
+      .withMutations(mutable => exactCover._setRowConstraints(mutable, grid, rowConStartCol))
+      .withMutations(mutable => exactCover._setColConstraints(mutable, grid, colConStartCol))
+      .withMutations(mutable => exactCover._setBlockConstraints(mutable, grid, blockConStartCol))
   },
 
   getRowIndex: (i, j, v, grid) => {
@@ -52,7 +56,7 @@ const exactCover = {
     return iOffset + jOffset + vOffset
   },
 
-  setCellConstraints: (matrix, grid, col) => {
+  _setCellConstraints: (mutable, grid, col) => {
     // col represents the starting index for a particular section of constraints
     // Usually it means that it is the sum on the number of column for each section
     // that has come before it
@@ -65,16 +69,15 @@ const exactCover = {
         symbols.forEach(v => {
           // Mark the current col at the row that represents [i,j,v]
           const row = exactCover.getRowIndex(i, j, v, grid)
-          matrix = matrix.setIn([row, col], 1)
+          mutable.setIn([row, col], 1)
         })
         // Go to next col after every row that satisfies the same constraint has been marked
         col++
       }
     }
-    return matrix
   },
 
-  setRowConstraints: (matrix, grid, col) => {
+  _setRowConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
     // For each i
@@ -84,16 +87,15 @@ const exactCover = {
         for (let j=0; j<gMatrix.count(); j++) {
           // Mark the current col at the row that represents [i,j,v]
           const row = exactCover.getRowIndex(i, j, v, grid)
-          matrix = matrix.setIn([row, col], 1)
+          mutable.setIn([row, col], 1)
         }
         // Go to next col after every row that satisfies the same constraint has been marked
         col++
       })
     }
-    return matrix
   },
 
-  setColConstraints: (matrix, grid, col) => {
+  _setColConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
     // For each j
@@ -103,16 +105,15 @@ const exactCover = {
         for (let i=0; i<gMatrix.count(); i++) {
           // Mark the current col at the row that represents [i,j,v]
           const row = exactCover.getRowIndex(i, j, v, grid)
-          matrix = matrix.setIn([row, col], 1)
+          mutable.setIn([row, col], 1)
         }
         // Go to next col after every row that satisfies the same constraint has been marked
         col++
       })
     }
-    return matrix
   },
 
-  setBlockConstraints: (matrix, grid, col) => {
+  _setBlockConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
     const blockLen = fnGrid.getBlockLen(grid) // block per row or col
@@ -126,7 +127,7 @@ const exactCover = {
             for (let j = 0; j < blockLen; j++) {
                 // Mark the current col at the row that represents [i,j,v]
                 const row = exactCover.getRowIndex(iOffset+i, jOffset+j, v, grid)
-                matrix = matrix.setIn([row, col], 1)
+                mutable.setIn([row, col], 1)
               }
             }
           // Go to next col after every row that satisfies the same constraint has been marked
@@ -134,6 +135,5 @@ const exactCover = {
         })
       }
     }
-    return matrix
   }
 }
