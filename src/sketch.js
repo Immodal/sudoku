@@ -1,4 +1,4 @@
-
+// Mutation city, population: Me
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
   const DFS = "depthfs"
@@ -14,10 +14,8 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.mkDataMap(true))
 
   let runSolve = false
-  let solveMap = Immutable.Map()
-    .set(DFS, basicSearch.solve(false, false))
-    .set(BFS, basicSearch.solve(true, false))
-    .set(GS, basicSearch.solve(false, true))
+  let nSteps = 0
+  let nFFWDs = 0
 
   let solveStepMap = Immutable.Map()
     .set(DFS, basicSearch.solveStep(false))
@@ -32,20 +30,29 @@ const sketch = ( p ) => {
   let stepCounter = null
   let stepBtn = null
   let solveBtn = null
+  let ffwdBtn = null
   let pauseBtn = null
   let resetBtn = null
-  let disableVisCb = null
-  let solverRadio = null
+  let solverSelect = null
 
-  // Get data mapper based on solver radio selection
-  const mkDataMap = grid => dataMap.get(solverRadio.value())(grid)
-  // Get solver based on solver radio selection
-  const solve = data => solveMap.get(solverRadio.value())(data)
-  const solveStep = data => solveStepMap.get(solverRadio.value())(data)
+  // Step nSteps and update the html
+  const setNSteps = n => {
+    nSteps = n
+    stepCounter.html(nSteps)
+  }
+
+  // Get data mapper based on solver selection
+  const mkDataMap = grid => {
+    setNSteps(0)
+    nFFWDs = 0
+    return dataMap.get(solverSelect.value())(grid)
+  }
+  // Get solver based on solver selection
+  const solveStep = data => solveStepMap.get(solverSelect.value())(data)
 
   // Generic btn/cb init fn
   const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
-  const initCb = (label, value, parent, callback=()=>{}) => initInteractive(p.createCheckbox(label, value), parent, callback)
+  // const initCb = (label, value, parent, callback=()=>{}) => initInteractive(p.createCheckbox(label, value), parent, callback)
   const initInteractive = (obj, parent, callback) => {
     obj.parent(parent)
     obj.mousePressed(callback)
@@ -79,24 +86,22 @@ const sketch = ( p ) => {
     const initPlaybackControl = () => {
       stepCounter = p.createSpan("0")
       stepCounter.parent("#stepCount")
-      //stepCounter.style("display", "inline")
       stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
       solveBtn = initBtn("Solve", "#playbackBtns", () => runSolve = true)
+      ffwdBtn = initBtn("FFWD 500 Steps", "#playbackBtns", () => nFFWDs += 500)
       pauseBtn = initBtn("Pause", "#playbackBtns", () => runSolve = false)
       resetBtn = initBtn("Reset", "#playbackBtns", () => data = mkDataMap(input_grid))
-      disableVisCb = initCb('Disable \"Solve\" Visualization (May cause reduced responsiveness)', false, "#playbackBtns");
-      disableVisCb.style("font-size", "13px")
     }
 
     const initSolverSelect = () => {
-      solverRadio = p.createRadio()
-      solverRadio.style('font-size', '13px')
-      solverRadio.parent("#solverRadios")
-      solverRadio.option("Greedy", GS)
-      solverRadio.option("Depth First", DFS)
-      solverRadio.option("Breadth First", BFS)
-      solverRadio.value(GS)
-      solverRadio.changed(() => data = mkDataMap(input_grid))
+      solverSelect = p.createSelect()
+      solverSelect.style('font-size', '13px')
+      solverSelect.parent("#solverSelect")
+      solverSelect.option("Greedy Depth First", GS)
+      solverSelect.option("Naive Depth First", DFS)
+      solverSelect.option("Breadth First (Not recommended)", BFS)
+      solverSelect.value(GS)
+      solverSelect.changed(() => data = mkDataMap(input_grid))
     }
 
     const initCol1 = () => {
@@ -113,17 +118,23 @@ const sketch = ( p ) => {
   p.draw = () => {
     p.background(240)
     p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
-    if (runSolve) {
-      if (!disableVisCb.checked()) {
+    if (nFFWDs>0) {
+      while (nFFWDs>0){
         data = solveStep(data)
-      } else {
-        data = solve(data)
-      }
-      if (data.get("grid").get("isComplete")) {
-        runSolve = false
+        setNSteps(nSteps+1)
+        if (basicSearch.isFinished(data.get("grid"),data.get("moves"))) nFFWDs = 0
+        else nFFWDs--
       }
     }
-    stepCounter.html(data.get("steps"))
+    if (runSolve) {
+      if (basicSearch.isFinished(data.get("grid"),data.get("moves"))) {
+        runSolve = false
+        nFFWDs = 0
+      } else {
+        data = solveStep(data)
+        setNSteps(nSteps+1)
+      }
+    }
   }
 }
 

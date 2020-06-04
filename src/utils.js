@@ -13,22 +13,6 @@ const fnMatrix = {
   toString: matrix => matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
 }
 
-const fnSearch = {
-  // Get position of next empty cell, top to bottom, left to right.
-  getEmptyCell: (grid, i=0) => {
-    const matrix = grid.get("matrix")
-    const j = matrix.get(i).indexOf(" ")
-    // if j<0, recurse further into the grid, else return coordinates of (i,j)
-    return j<0 ? (i+1<matrix.count() ? fnSearch.getEmptyCell(grid, i+1) : {row:-1, col:-1}) : {row:i, col:j}
-  },
-
-  isValidMove: (grid, row, col, value) => 
-  !grid.get("matrix").get(row).some(v => v==value) && // row
-  !grid.get("matrix").some(row => row.get(col)==value) && // col
-  !fnGrid.getBlock(grid, row, col).some(row => row.some(v => v==value)), // block
-
-}
-
 // Simple Immutable Binary Heap Factory, by default a min heap
 const Heap = (list, compare=(a,b)=>a<b) => {
   const heap = {}

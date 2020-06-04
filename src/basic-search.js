@@ -1,9 +1,8 @@
 const basicSearch = {
   // Make data object used in Iterative solver
-  mkDataMap: (isGreedy) => grid => Immutable.Map({
+  mkDataMap: isGreedy => grid => Immutable.Map({
     grid: grid,
     moves: isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid),
-    steps: 0,
   }),
 
   // Move the iterative algorithm forward one step
@@ -11,26 +10,29 @@ const basicSearch = {
   solveStep: (isBfs, isGreedy) => data => {
     const grid = data.get("grid")
     const moves = data.get("moves")
+    // Don't have to do anything if already complete
+    // This is already handled by while loop in solve(), but useful to prevent unnecessary computation in the app
+    if (basicSearch.isFinished(grid,moves)) return data
     // If grid is a valid solution, update its status
-    if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
+    else if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
     else {
       // Otherwise add the moves from current grid and grab the first one in the stack
       const newMoves = moves.concat(isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
       return data
         .set("grid", isBfs ? newMoves.first() : newMoves.last())
         .set("moves", isBfs ? newMoves.shift() : newMoves.pop())
-        .set("steps", data.get("steps")+1)
     }
   },
 
   // Impure Iterative Solver
-  solve:  (isBfs, isGreedy) => data => {
+  solve:  (isBfs, isGreedy) => grid => {
     const step = basicSearch.solveStep(isBfs, isGreedy)
+    let data = basicSearch.mkDataMap(isGreedy)(grid)
     // Loop until solution found or exhausted all options
-    while(!data.getIn(["grid","isComplete"]) && data.get("moves").count()>0) {
+    while(!basicSearch.isFinished(data.get("grid"),data.get("moves"))) {
       data = step(data)
     }
-    return data
+    return data.get("grid")
   },
 
   // Pure Functional Solver, 
@@ -38,7 +40,7 @@ const basicSearch = {
   // Max recursion depth will equal the total number of moves examined
   solve2: (isBfs, isGreedy) => grid => {
     const _solve = (grid, moves) => {
-      if (grid.get("isComplete") || moves.count()<=0) return grid
+      if (basicSearch.isFinished(grid,moves)) return grid
       else if (fnGrid.validate(grid)) return grid.set("isComplete", true)
       else {
         const newMoves = moves.concat(isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
@@ -53,11 +55,11 @@ const basicSearch = {
   // Get the next available moves from this grid
   getNext: grid => {
     // Get the position of next empty cell
-    const {row, col} = fnSearch.getEmptyCell(grid)
+    const {row, col} = basicSearch.getEmptyCell(grid)
     if (row<0) return Immutable.List()
     else {
       return grid.get("symbols") // For all symbols,
-        .filter(v => fnSearch.isValidMove(grid, row, col, v)) // filter for only the ones that are valid
+        .filter(v => basicSearch.isValidMove(grid, row, col, v)) // filter for only the ones that are valid
         .map(v => fnGrid.setValue(grid, row, col, v)) // get new grids with the valid symbols added to the position
         .toList() // Convert from Set to List
     }
@@ -74,7 +76,7 @@ const basicSearch = {
       const jNew = j+1 < matrix.count() ? j+1 : 0
 
       if (cell==" ") {
-        const validMoves = symbols.filter(v => fnSearch.isValidMove(grid, i, j, v))
+        const validMoves = symbols.filter(v => basicSearch.isValidMove(grid, i, j, v))
         // *Important* If there are no valid moves in an empty cell, then all moves stemming from
         // this particular grid will be invalid anyway, so just return an empty heap
         if(validMoves.count()<=0) return Heap()
@@ -89,4 +91,20 @@ const basicSearch = {
     const sorted = getMoves(0, 0, Heap([], (a, b) => a.count()<b.count()))
     return sorted.count()>0 ? sorted.peek() : Immutable.List()
   },
+
+  // No more work to be done
+  isFinished: (grid, moves) => grid.get("isComplete") || moves.count()<=0,
+
+  // Get position of next empty cell, top to bottom, left to right.
+  getEmptyCell: (grid, i=0) => {
+    const matrix = grid.get("matrix")
+    const j = matrix.get(i).indexOf(" ")
+    // if j<0, recurse further into the grid, else return coordinates of (i,j)
+    return j<0 ? (i+1<matrix.count() ? basicSearch.getEmptyCell(grid, i+1) : {row:-1, col:-1}) : {row:i, col:j}
+  },
+
+  isValidMove: (grid, row, col, value) => 
+  !grid.get("matrix").get(row).some(v => v==value) && // row
+  !grid.get("matrix").some(row => row.get(col)==value) && // col
+  !fnGrid.getBlock(grid, row, col).some(row => row.some(v => v==value)), // block
 }
