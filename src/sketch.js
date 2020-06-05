@@ -56,17 +56,10 @@ const sketch = ( p ) => {
     nFFWDs = 0
     return dataMap.get(solverSelect.value())(grid)
   }
-  // Get solver based on solver selection
+  // Get solver specific functions based on solver selection
   const solveStep = data => solveStepMap.get(solverSelect.value())(data)
+  const isFinished = data => isFinishedMap.get(solverSelect.value())(data)
 
-  const isFinished = data => {
-    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
-      return isFinishedMap.get(solverSelect.value())(data.get("grid"),data.get("moves"))
-    } else {
-      return isFinishedMap.get(solverSelect.value())(data)
-    }
-  }
-  
   // Generic btn/cb init fn
   const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
   // const initCb = (label, value, parent, callback=()=>{}) => initInteractive(p.createCheckbox(label, value), parent, callback)
