@@ -37,10 +37,12 @@ const exactCover = {
     const blockConStartCol = nCellConCols + nRowConCols + nColConCols
 
     return fnMatrix.mkFill(nRows, nCellConCols + nRowConCols + nColConCols + nBlockConCols, 0)
-      .withMutations(mutable => exactCover._setCellConstraints(mutable, grid, cellConStartCol))
-      .withMutations(mutable => exactCover._setRowConstraints(mutable, grid, rowConStartCol))
-      .withMutations(mutable => exactCover._setColConstraints(mutable, grid, colConStartCol))
-      .withMutations(mutable => exactCover._setBlockConstraints(mutable, grid, blockConStartCol))
+      .withMutations(mutable => {
+        exactCover._setCellConstraints(mutable, grid, cellConStartCol)
+        exactCover._setRowConstraints(mutable, grid, rowConStartCol)
+        exactCover._setColConstraints(mutable, grid, colConStartCol)
+        exactCover._setBlockConstraints(mutable, grid, blockConStartCol)
+      })
   },
 
   getRowIndex: (i, j, v, grid) => {

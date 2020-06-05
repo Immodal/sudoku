@@ -108,16 +108,14 @@ const algoX = {
   updateGrid: (state, grid) => {
     const lookup = state.get("lookup")
     const solution = state.get("solution")
-    let gMatrix = grid.get("matrix")
-
-    solution.forEach(row => {
-      const s = lookup.get(row)
-      if(gMatrix.getIn([s.get("i"), s.get("j")])==" ") {
-        gMatrix = gMatrix.setIn([s.get("i"), s.get("j")], s.get("v"))
-      }
-    })
-
-    return grid.set("matrix", gMatrix)
+    return grid.set("matrix", grid.get("matrix").withMutations(mutable => {
+      solution.forEach(row => {
+        const s = lookup.get(row)
+        if(mutable.getIn([s.get("i"), s.get("j")])==" ") {
+          mutable.setIn([s.get("i"), s.get("j")], s.get("v"))
+        }
+      })
+    }))
   },
   // Either a solution has been found, or there are no more open rows
   isFinished: data => data.getIn(["grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
@@ -146,8 +144,9 @@ const algoX = {
   getSatisfiedCols: (state, row) => state.get("ecMatrix").get(row).map((s,i) => s>0 ? i : -1).filter(col => col>=0),
   // Find a column that is not satisfied by the solution
   getUnsatisfiedCol: state => { 
-    const nCols = state.getIn(["ecMatrix", 0]).count()
-    const unsatisfied = fnArr.rangeSet(nCols).subtract(state.get("satisfied"))
-    return unsatisfied.count>0 ? unsatisfied.first() : -1
+    for (let i=0; i<state.getIn(["ecMatrix", 0]).count(); i++) {
+      if(!state.get("satisfied").has(i)) return i;
+    }
+    return -1;
   },
 }
