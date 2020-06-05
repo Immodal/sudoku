@@ -66,15 +66,7 @@ const sketch = ( p ) => {
       return isFinishedMap.get(solverSelect.value())(data)
     }
   }
-
-  const getGrid = data => {
-    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
-      return data.get("grid")
-    } else {
-      return data.getIn(["state", "grid"])
-    }
-  }
-
+  
   // Generic btn/cb init fn
   const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
   // const initCb = (label, value, parent, callback=()=>{}) => initInteractive(p.createCheckbox(label, value), parent, callback)
@@ -143,7 +135,7 @@ const sketch = ( p ) => {
 
   p.draw = () => {
     p.background(240)
-    p5Grid.draw(p, getGrid(data), 0, 0, 400, 400)
+    p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
     if (nFFWDs>0) {
       while (nFFWDs>0){
         data = solveStep(data)

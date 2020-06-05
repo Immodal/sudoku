@@ -1,5 +1,6 @@
 const algoX = {
   mkDataMap: grid => Immutable.Map({
+    grid: grid,
     state: algoX.mkStateMap(grid),
     moves: Immutable.List(),
   }),
@@ -67,35 +68,44 @@ const algoX = {
       })
     }
 
-    const data = {}
-    data.grid = grid
-    data.ecMatrix = exactCover.mkMatrix(grid)
-    data.lookup = mkLookup(data.grid)
-    data.solution = initSolution(data.grid)
-    data.open = initOpen(data.grid)
-    data.satisfied = initSatisfied(data.solution, data.ecMatrix)
+    const state = {}
+    state.ecMatrix = exactCover.mkMatrix(grid)
+    state.lookup = mkLookup(grid)
+    state.solution = initSolution(grid)
+    state.open = initOpen(grid)
+    state.satisfied = initSatisfied(state.solution, state.ecMatrix)
 
-    return Immutable.Map(data)
+    return Immutable.Map(state)
   }, // End mkDataMap
 
   solveStep: data => {
+    // Follows Pseudocode found on wikipedia
     const moves = data.get("moves")
     const state = data.get("state")
+
     if(algoX.solutionFound(data)) return data.setIn(["grid","isComplete"], true)
     else {
+      // 2. Otherwise choose a column c (deterministically).
+      // 3. Choose a row r such that Ar, c = 1 (nondeterministically).
       const candidates = algoX.getNext(state)
       const newState = state.set("open", state.get("open").subtract(candidates))
       let newMoves = moves
-      
+
       const validCandidates = candidates.filter(c => algoX.rowIsValid(state, c)).toList()
       for (let i=0; i<validCandidates.count(); i++) {
         newMoves = newMoves.push(newState.withMutations(mutable => {
+          // 4. Include row r in the partial solution.
           mutable.set("solution", newState.get("solution").add(validCandidates.get(i)))
+          // 5. For each column j such that Ar, j = 1, ...
+          // Not deleting columns but instead marking columns satisfied
           mutable.set("satisfied", newState.get("satisfied").union(algoX.getSatisfiedCols(state, validCandidates.get(i))))
         }))
       }
 
-      return data.set("state", algoX.updateGrid(newMoves.last())).set("moves", newMoves.pop())
+      return data
+        .set("state", newMoves.last())
+        .set("grid", algoX.updateGrid(newMoves.last(), data.get("grid")))
+        .set("moves", newMoves.pop())
     }
   },
 
@@ -104,16 +114,17 @@ const algoX = {
     let data = algoX.mkDataMap(grid)
     // Loop until solution found or exhausted all options
     let count = 0
+    // 1. If the matrix A (state.open) has no columns, the current partial solution is a valid solution; terminate successfully.
     while(!algoX.isFinished(data)) {
       data = algoX.solveStep(data)
     }
-    return data.get("state").get("grid")
+    return data.get("grid")
   },
 
-  updateGrid: state => {
+  updateGrid: (state, grid) => {
     const lookup = state.get("lookup")
     const solution = state.get("solution")
-    let gMatrix = state.get("grid").get("matrix")
+    let gMatrix = grid.get("matrix")
 
     solution.forEach(row => {
       const s = lookup.get(row)
@@ -122,10 +133,10 @@ const algoX = {
       }
     })
 
-    return state.setIn(["grid","matrix"], gMatrix)
+    return grid.set("matrix", gMatrix)
   },
-
-  isFinished: data => data.getIn(["state","grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
+  // Either a solution has been found, or there are no more open rows
+  isFinished: data => data.getIn(["grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
   // Is solution found once all constraints are satisfied, which happens to be the number of columns in the ecmatrix
   solutionFound: data => data.getIn(["state","satisfied"]).count() == data.getIn(["state","ecMatrix",0]).count(),
   // Check that none of the other constraints in the row have been satisfied
@@ -136,9 +147,10 @@ const algoX = {
   },
   // Get rows that satisfy the same unsatisfied column
   getNext: state => {
+    const getCandidates = state => state.get("open").filter(row => state.getIn(["ecMatrix", row]).get(col)>0)
     const col = algoX.getUnsatisfiedCol(state)
-    if (col>=0) return state.get("open").filter(row => state.getIn(["ecMatrix", row]).get(col)>0)
-    else return Immutable.Set()
+    return col>=0 ? getCandidates(state) : Immutable.Set()
+
   },
   // Fund a column that is not satisfied by the solution
   getUnsatisfiedCol: state => {
