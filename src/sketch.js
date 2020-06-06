@@ -5,6 +5,7 @@ const sketch = ( p ) => {
   const BFS = "breadthfs"
   const GS = "greedys"
   const AX = "algox"
+  const GAX = "greedyalgox"
 
   // Data Vars
   let input_grid = fnGrid.importString(test44EasyGameA.input)
@@ -14,6 +15,7 @@ const sketch = ( p ) => {
     .set(BFS, basicSearch.mkDataMap)
     .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
+    .set(GAX, algoX.mkDataMap)
 
   let runSolve = false
   let nSteps = 0
@@ -23,13 +25,15 @@ const sketch = ( p ) => {
     .set(DFS, basicSearch.solveStep(false))
     .set(BFS, basicSearch.solveStep(true))
     .set(GS, basicSearch.solveStep(false, true))
-    .set(AX, algoX.solveStep)
+    .set(AX, algoX.solveStep(false))
+    .set(GAX, algoX.solveStep(true))
 
   let isFinishedMap = Immutable.Map()
     .set(DFS, basicSearch.isFinished)
     .set(BFS, basicSearch.isFinished)
     .set(GS, basicSearch.isFinished)
     .set(AX, algoX.isFinished)
+    .set(GAX, algoX.isFinished)
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null
@@ -117,7 +121,8 @@ const sketch = ( p ) => {
       solverSelect = p.createSelect()
       solverSelect.style('font-size', '13px')
       solverSelect.parent("#solverSelect")
-      solverSelect.option("Algorithm X", AX)
+      solverSelect.option("Greedy Algorithm X", GAX)
+      solverSelect.option("Naive Algorithm X", AX)
       solverSelect.option("Greedy Depth First", GS)
       solverSelect.option("Naive Depth First", DFS)
       solverSelect.option("Breadth First (Not recommended)", BFS)
