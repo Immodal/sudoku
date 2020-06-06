@@ -101,7 +101,6 @@ const algoX = {
   solve: grid => {
     let data = algoX.mkDataMap(grid)
     // Loop until solution found or exhausted all options
-    // 1. If the matrix A (state.open) has no columns, the current partial solution is a valid solution; terminate successfully.
     while(!algoX.isFinished(data)) {
       data = algoX.solveStep(data)
     }

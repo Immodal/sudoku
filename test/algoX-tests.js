@@ -64,4 +64,14 @@ const algoXTests = {
     eq(false, algoX.rowIsValid(state, 2))
     eq(false, algoX.rowIsValid(state, 3))
   },
+
+  'solver works': () => {
+    const check = (strIn, strOut) => {
+      eq(strOut, fnGrid.exportString(algoX.solve(fnGrid.importString(strIn))))
+    }
+
+    check(test44EasyGameA.input, test44EasyGameA.complete)
+    check(test44HardGameA.input, test44HardGameA.complete)
+    check(test99EasyGameA.input, test99EasyGameA.complete)
+  },
 }
