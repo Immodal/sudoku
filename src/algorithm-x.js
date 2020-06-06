@@ -1,3 +1,4 @@
+// Based on Donald Knuth's Algorithm X
 const algoX = {
 
   mkDataMap: grid => Immutable.Map({
@@ -88,7 +89,11 @@ const algoX = {
     const moves = data.get("moves")
     const state = data.get("state")
 
-    if(algoX.solutionFound(data)) return data.setIn(["grid","isComplete"], true)
+    if(algoX.solutionFound(data)) 
+      // Only set isComplete to true if the solution is actually valid
+      if(!data.getIn(["grid","isComplete"]) && fnGrid.validate(data.get("grid"))) {
+        return data.setIn(["grid","isComplete"], true)
+      } else return data
     else {
       const newMoves = moves.concat(algoX.getNext(state, isGreedy))
       return data.withMutations(mutable => {
@@ -125,7 +130,7 @@ const algoX = {
 
   // Either a solution has been found, or there are no more open rows
   isFinished: data => data.getIn(["grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
-  // Is solution found once all constraints are satisfied, which happens to be the number of columns in the ecMatrix
+  // If solution found once all constraints are satisfied, which happens to be the number of columns in the ecMatrix
   solutionFound: data => data.getIn(["state","satisfied"]).count() == data.getIn(["state","ecMatrix",0]).count(),
 
   // Get a list of states that follow the current given state

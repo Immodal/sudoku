@@ -130,26 +130,24 @@ const sketch = ( p ) => {
       solverSelect.changed(() => data = mkDataMap(input_grid))
     }
 
-    const initCol1 = () => {
-      initPuzzleLoader()
-      initPlaybackControl()
-      initSolverSelect()
-    }
-
     initCanvas()
-    initCol1()
+    // Col1
+    initPuzzleLoader()
+    initPlaybackControl()
+    initSolverSelect()
+
     data = mkDataMap(input_grid)
   }
 
   p.draw = () => {
     p.background(240)
     p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
-    if (nFFWDs>0) {
+    if (nFFWDs>0) { // if FFWD is active
       while (nFFWDs>0){
         data = solveStep(data)
       }
     }
-    if (runSolve) {
+    if (runSolve) { // If solve button was pressed
       data = solveStep(data)
     }
   }
