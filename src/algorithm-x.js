@@ -1,9 +1,14 @@
 const algoX = {
+
   mkDataMap: grid => Immutable.Map({
+    grid: grid,
+    inputGrid: grid,
     state: algoX.mkStateMap(grid),
     moves: Immutable.List(),
   }),
 
+  // Generate a map that holds all the information needed to represent a given grid
+  // and the progress in finding a solution
   mkStateMap: grid => {
     // Lookup Table for using rows to find the [i,j,v] they represent
     const mkLookup = grid => {
@@ -65,37 +70,30 @@ const algoX = {
           if(state>0) mutable.add(col)
         }))
       })
-    }
+    } // End initSatisfied
 
-    const data = {}
-    data.grid = grid
-    data.ecMatrix = exactCover.mkMatrix(grid)
-    data.lookup = mkLookup(data.grid)
-    data.solution = initSolution(data.grid)
-    data.open = initOpen(data.grid)
-    data.satisfied = initSatisfied(data.solution, data.ecMatrix)
+    const state = {}
+    state.ecMatrix = exactCover.mkMatrix(grid)
+    state.lookup = mkLookup(grid)
+    state.solution = initSolution(grid)
+    state.open = initOpen(grid)
+    state.satisfied = initSatisfied(state.solution, state.ecMatrix)
 
-    return Immutable.Map(data)
+    return Immutable.Map(state)
   }, // End mkDataMap
 
-  solveStep: data => {
+  solveStep: data => { // Depth first search using Algorithm X
     const moves = data.get("moves")
     const state = data.get("state")
+
     if(algoX.solutionFound(data)) return data.setIn(["grid","isComplete"], true)
     else {
-      const candidates = algoX.getNext(state)
-      const newState = state.set("open", state.get("open").subtract(candidates))
-      let newMoves = moves
-      
-      const validCandidates = candidates.filter(c => algoX.rowIsValid(state, c)).toList()
-      for (let i=0; i<validCandidates.count(); i++) {
-        newMoves = newMoves.push(newState.withMutations(mutable => {
-          mutable.set("solution", newState.get("solution").add(validCandidates.get(i)))
-          mutable.set("satisfied", newState.get("satisfied").union(algoX.getSatisfiedCols(state, validCandidates.get(i))))
-        }))
-      }
-
-      return data.set("state", algoX.updateGrid(newMoves.last())).set("moves", newMoves.pop())
+      const newMoves = moves.concat(algoX.getNext(state))
+      return data.withMutations(mutable => {
+        mutable.set("state", newMoves.last())
+        mutable.set("grid", algoX.updateGrid(newMoves.last(), data.get("inputGrid")))
+        mutable.set("moves", newMoves.pop())
+      })
     }
   },
 
@@ -103,50 +101,57 @@ const algoX = {
   solve: grid => {
     let data = algoX.mkDataMap(grid)
     // Loop until solution found or exhausted all options
-    let count = 0
+    // 1. If the matrix A (state.open) has no columns, the current partial solution is a valid solution; terminate successfully.
     while(!algoX.isFinished(data)) {
       data = algoX.solveStep(data)
     }
-    return data.get("state").get("grid")
+    return data.get("grid")
   },
-
-  updateGrid: state => {
-    const lookup = state.get("lookup")
-    const solution = state.get("solution")
-    let gMatrix = state.get("grid").get("matrix")
-
-    solution.forEach(row => {
-      const s = lookup.get(row)
-      if(gMatrix.getIn([s.get("i"), s.get("j")])==" ") {
-        gMatrix = gMatrix.setIn([s.get("i"), s.get("j")], s.get("v"))
-      }
-    })
-
-    return state.setIn(["grid","matrix"], gMatrix)
+  // Update the grid to represent the current solution
+  updateGrid: (state, grid) => {
+    return grid.set("matrix", grid.get("matrix").withMutations(mutable => {
+      state.get("solution").forEach(row => {
+        const s = state.get("lookup").get(row)
+        // If statement not strictly needed, just want to prevent overriding original input cells
+        // to make possible bugs more obvious
+        if(mutable.getIn([s.get("i"), s.get("j")])==" ") {
+          mutable.setIn([s.get("i"), s.get("j")], s.get("v"))
+        }
+      })
+    }))
   },
-
-  isFinished: data => data.getIn(["state","grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
-  // Is solution found once all constraints are satisfied, which happens to be the number of columns in the ecmatrix
+  // Either a solution has been found, or there are no more open rows
+  isFinished: data => data.getIn(["grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
+  // Is solution found once all constraints are satisfied, which happens to be the number of columns in the ecMatrix
   solutionFound: data => data.getIn(["state","satisfied"]).count() == data.getIn(["state","ecMatrix",0]).count(),
-  // Check that none of the other constraints in the row have been satisfied
-  // If they have, then it is invalid
-  rowIsValid: (state, row) => {
-    return !state.getIn(["ecMatrix", row])
-      .some((st, col) => state.get("satisfied").has(col) && st>0)
-  },
-  // Get rows that satisfy the same unsatisfied column
+  // Get a list of states that follow the current given state
   getNext: state => {
     const col = algoX.getUnsatisfiedCol(state)
-    if (col>=0) return state.get("open").filter(row => state.getIn(["ecMatrix", row]).get(col)>0)
-    else return Immutable.Set()
+    const candidates = col>=0 ? algoX.getCandidates(state, col) : Immutable.Set()
+    // Subtract both valid and invalid candidates so that states following this will not 
+    // have to process candidates already shown to be invalid
+    const nextState = state.set("open", state.get("open").subtract(candidates))
+    return candidates
+      .filter(c => algoX.rowIsValid(nextState, c)) // filter for valid candidates
+      .map(c => nextState.withMutations(stateMutable => { // For each candidate,
+        // Add to solution,
+        stateMutable.set("solution", nextState.get("solution").add(c)) 
+        // Add cols that candidate satisfies to satisfied set.
+        stateMutable.set("satisfied", nextState.get("satisfied").union(algoX.getSatisfiedCols(nextState, c)))
+      }))
+      .toList()
   },
-  // Fund a column that is not satisfied by the solution
-  getUnsatisfiedCol: state => {
+  // Get a list of rows that satisfy a given column
+  getCandidates: (state, col) => state.get("open").filter(row => state.getIn(["ecMatrix", row]).get(col)>0),
+  // If the row does not satisfy any cols that have already been satisfied (no intersection), then it is valid
+  rowIsValid: (state, row) => state.get("satisfied").intersect(algoX.getSatisfiedCols(state, row)).count()<=0,
+  // Make a list of column indices that the row satisfies
+  getSatisfiedCols: (state, row) => state.get("ecMatrix").get(row).map((s,i) => s>0 ? i : -1).filter(col => col>=0),
+  // Find a column that is not satisfied by the solution
+  getUnsatisfiedCol: state => { 
     for (let i=0; i<state.getIn(["ecMatrix", 0]).count(); i++) {
       if(!state.get("satisfied").has(i)) return i;
     }
     return -1;
   },
-
-  getSatisfiedCols: (state, row) => state.get("ecMatrix").get(row).map((s,i) => s>0 ? i : -1).filter(col => col>=0)
 }

@@ -1,5 +1,5 @@
 const fnMatrixTests = {
-  'makes and fills a matrix of the correct size and fills it': () => {
+  'makes a matrix of the correct size and fills it': () => {
     let exp1 = Immutable.fromJS([
       [5,5,5,5],
       [5,5,5,5],

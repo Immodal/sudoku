@@ -1,8 +1,8 @@
 const basicSearch = {
   // Make data object used in Iterative solver
-  mkDataMap: isGreedy => grid => Immutable.Map({
+  mkDataMap: grid => Immutable.Map({
     grid: grid,
-    moves: isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid),
+    moves: Immutable.List([grid]),
   }),
 
   // Move the iterative algorithm forward one step
@@ -12,24 +12,25 @@ const basicSearch = {
     const moves = data.get("moves")
     // Don't have to do anything if already complete
     // This is already handled by while loop in solve(), but useful to prevent unnecessary computation in the app
-    if (basicSearch.isFinished(grid,moves)) return data
+    if (basicSearch.isFinished(data)) return data
     // If grid is a valid solution, update its status
     else if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
     else {
       // Otherwise add the moves from current grid and grab the first one in the stack
-      const newMoves = moves.concat(isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
+      const getNext = () => isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid)
+      const newMoves = isBfs ? moves.shift().concat(getNext()) : moves.pop().concat(getNext())
       return data
         .set("grid", isBfs ? newMoves.first() : newMoves.last())
-        .set("moves", isBfs ? newMoves.shift() : newMoves.pop())
+        .set("moves", newMoves)
     }
   },
 
   // Impure Iterative Solver
   solve:  (isBfs, isGreedy) => grid => {
     const step = basicSearch.solveStep(isBfs, isGreedy)
-    let data = basicSearch.mkDataMap(isGreedy)(grid)
+    let data = basicSearch.mkDataMap(grid)
     // Loop until solution found or exhausted all options
-    while(!basicSearch.isFinished(data.get("grid"),data.get("moves"))) {
+    while(!basicSearch.isFinished(data)) {
       data = step(data)
     }
     return data.get("grid")
@@ -39,17 +40,19 @@ const basicSearch = {
   // Can easily cause stack overflow for large problems due to lack of tail call optimization in JS
   // Max recursion depth will equal the total number of moves examined
   solve2: (isBfs, isGreedy) => grid => {
-    const _solve = (grid, moves) => {
-      if (basicSearch.isFinished(grid,moves)) return grid
-      else if (fnGrid.validate(grid)) return grid.set("isComplete", true)
+    const _solve = data => {
+      const grid = data.get("grid")
+      const moves = data.get("moves")
+      if (basicSearch.isFinished(data)) return data
+      else if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
       else {
         const newMoves = moves.concat(isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
-        return _solve(
-          isBfs ? newMoves.first() : newMoves.last(), 
-          isBfs ? newMoves.shift() : newMoves.pop())
+        return _solve(data
+          .set("grid", isBfs ? newMoves.first() : newMoves.last())
+          .set("moves", isBfs ? newMoves.shift() : newMoves.pop()))
       }
     }
-    return _solve(grid, isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
+    return _solve(basicSearch.mkDataMap(grid))
   },
 
   // Get the next available moves from this grid
@@ -93,7 +96,7 @@ const basicSearch = {
   },
 
   // No more work to be done
-  isFinished: (grid, moves) => grid.get("isComplete") || moves.count()<=0,
+  isFinished: data => data.get("grid").get("isComplete") || data.get("moves").count()<=0,
 
   // Get position of next empty cell, top to bottom, left to right.
   getEmptyCell: (grid, i=0) => {

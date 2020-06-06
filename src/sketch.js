@@ -7,12 +7,12 @@ const sketch = ( p ) => {
   const AX = "algox"
 
   // Data Vars
-  let input_grid = fnGrid.importString(test99EasyGameA.input)
+  let input_grid = fnGrid.importString(test44EasyGameA.input)
   let data = null
   let dataMap = Immutable.Map()
-    .set(DFS, basicSearch.mkDataMap(false))
-    .set(BFS, basicSearch.mkDataMap(false))
-    .set(GS, basicSearch.mkDataMap(true))
+    .set(DFS, basicSearch.mkDataMap)
+    .set(BFS, basicSearch.mkDataMap)
+    .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
 
   let runSolve = false
@@ -56,24 +56,19 @@ const sketch = ( p ) => {
     nFFWDs = 0
     return dataMap.get(solverSelect.value())(grid)
   }
-  // Get solver based on solver selection
-  const solveStep = data => solveStepMap.get(solverSelect.value())(data)
-
-  const isFinished = data => {
-    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
-      return isFinishedMap.get(solverSelect.value())(data.get("grid"),data.get("moves"))
+  // Get solver specific functions based on solver selection
+  const solveStep = data => {
+    const newData = solveStepMap.get(solverSelect.value())(data)
+    if (isFinished(newData)) {
+      runSolve = false
+      nFFWDs = 0
     } else {
-      return isFinishedMap.get(solverSelect.value())(data)
+      setNSteps(nSteps+1)
+      nFFWDs--
     }
+    return newData
   }
-
-  const getGrid = data => {
-    if ([DFS, BFS, GS].some(s => s==solverSelect.value())) {
-      return data.get("grid")
-    } else {
-      return data.getIn(["state", "grid"])
-    }
-  }
+  const isFinished = data => isFinishedMap.get(solverSelect.value())(data)
 
   // Generic btn/cb init fn
   const initBtn = (label, parent, callback) => initInteractive(p.createButton(label), parent, callback)
@@ -143,25 +138,14 @@ const sketch = ( p ) => {
 
   p.draw = () => {
     p.background(240)
-    p5Grid.draw(p, getGrid(data), 0, 0, 400, 400)
+    p5Grid.draw(p, data.get("grid"), 0, 0, 400, 400)
     if (nFFWDs>0) {
       while (nFFWDs>0){
         data = solveStep(data)
-        if (isFinished(data)) nFFWDs = 0
-        else {
-          setNSteps(nSteps+1)
-          nFFWDs--
-        }
       }
     }
     if (runSolve) {
-      if (isFinished(data)) {
-        runSolve = false
-        nFFWDs = 0
-      } else {
-        data = solveStep(data)
-        setNSteps(nSteps+1)
-      }
+      data = solveStep(data)
     }
   }
 }

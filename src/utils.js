@@ -13,6 +13,15 @@ const fnMatrix = {
   toString: matrix => matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
 }
 
+const fnArr = {
+  // Make a List of numbers 0 -> (n-1)
+  range: n => Immutable.List(fnArr._range(n)),
+  // Make a Set of numbers 0 -> (n-1)
+  rangeSet: n => Immutable.Set(fnArr._range(n)),
+  // make a JS Array of numbers 0 -> (n-1)
+  _range:n => Array(n).fill().map((_, i) => i)
+}
+
 // Simple Immutable Binary Heap Factory, by default a min heap
 const Heap = (list, compare=(a,b)=>a<b) => {
   const heap = {}
