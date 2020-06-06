@@ -62,8 +62,7 @@ const sketch = ( p ) => {
     if (isFinished(newData)) {
       runSolve = false
       nFFWDs = 0
-    }
-    else {
+    } else {
       setNSteps(nSteps+1)
       nFFWDs--
     }

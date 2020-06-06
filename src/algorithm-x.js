@@ -2,6 +2,7 @@ const algoX = {
 
   mkDataMap: grid => Immutable.Map({
     grid: grid,
+    inputGrid: grid,
     state: algoX.mkStateMap(grid),
     moves: Immutable.List(),
   }),
@@ -88,7 +89,7 @@ const algoX = {
       const newMoves = moves.concat(algoX.getNext(state))
       return data.withMutations(mutable => {
         mutable.set("state", newMoves.last())
-        mutable.set("grid", algoX.updateGrid(newMoves.last(), data.get("grid")))
+        mutable.set("grid", algoX.updateGrid(newMoves.last(), data.get("inputGrid")))
         mutable.set("moves", newMoves.pop())
       })
     }
@@ -106,11 +107,9 @@ const algoX = {
   },
 
   updateGrid: (state, grid) => {
-    const lookup = state.get("lookup")
-    const solution = state.get("solution")
     return grid.set("matrix", grid.get("matrix").withMutations(mutable => {
-      solution.forEach(row => {
-        const s = lookup.get(row)
+      state.get("solution").forEach(row => {
+        const s = state.get("lookup").get(row)
         if(mutable.getIn([s.get("i"), s.get("j")])==" ") {
           mutable.setIn([s.get("i"), s.get("j")], s.get("v"))
         }
