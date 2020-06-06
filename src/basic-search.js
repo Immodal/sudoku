@@ -1,8 +1,8 @@
 const basicSearch = {
   // Make data object used in Iterative solver
-  mkDataMap: isGreedy => grid => Immutable.Map({
+  mkDataMap: grid => Immutable.Map({
     grid: grid,
-    moves: isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid),
+    moves: Immutable.List([grid]),
   }),
 
   // Move the iterative algorithm forward one step
@@ -17,17 +17,18 @@ const basicSearch = {
     else if (fnGrid.validate(grid)) return data.setIn(["grid","isComplete"], true)
     else {
       // Otherwise add the moves from current grid and grab the first one in the stack
-      const newMoves = moves.concat(isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid))
+      const getNext = () => isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid)
+      const newMoves = isBfs ? moves.shift().concat(getNext()) : moves.pop().concat(getNext())
       return data
         .set("grid", isBfs ? newMoves.first() : newMoves.last())
-        .set("moves", isBfs ? newMoves.shift() : newMoves.pop())
+        .set("moves", newMoves)
     }
   },
 
   // Impure Iterative Solver
   solve:  (isBfs, isGreedy) => grid => {
     const step = basicSearch.solveStep(isBfs, isGreedy)
-    let data = basicSearch.mkDataMap(isGreedy)(grid)
+    let data = basicSearch.mkDataMap(grid)
     // Loop until solution found or exhausted all options
     while(!basicSearch.isFinished(data)) {
       data = step(data)
@@ -51,7 +52,7 @@ const basicSearch = {
           .set("moves", isBfs ? newMoves.shift() : newMoves.pop()))
       }
     }
-    return _solve(basicSearch.mkDataMap(isGreedy)(grid))
+    return _solve(basicSearch.mkDataMap(grid))
   },
 
   // Get the next available moves from this grid

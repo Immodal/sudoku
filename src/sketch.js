@@ -7,12 +7,12 @@ const sketch = ( p ) => {
   const AX = "algox"
 
   // Data Vars
-  let input_grid = fnGrid.importString(test99EasyGameA.input)
+  let input_grid = fnGrid.importString(test44EasyGameA.input)
   let data = null
   let dataMap = Immutable.Map()
-    .set(DFS, basicSearch.mkDataMap(false))
-    .set(BFS, basicSearch.mkDataMap(false))
-    .set(GS, basicSearch.mkDataMap(true))
+    .set(DFS, basicSearch.mkDataMap)
+    .set(BFS, basicSearch.mkDataMap)
+    .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
 
   let runSolve = false
@@ -57,7 +57,18 @@ const sketch = ( p ) => {
     return dataMap.get(solverSelect.value())(grid)
   }
   // Get solver specific functions based on solver selection
-  const solveStep = data => solveStepMap.get(solverSelect.value())(data)
+  const solveStep = data => {
+    const newData = solveStepMap.get(solverSelect.value())(data)
+    if (isFinished(newData)) {
+      runSolve = false
+      nFFWDs = 0
+    }
+    else {
+      setNSteps(nSteps+1)
+      nFFWDs--
+    }
+    return newData
+  }
   const isFinished = data => isFinishedMap.get(solverSelect.value())(data)
 
   // Generic btn/cb init fn
@@ -132,21 +143,10 @@ const sketch = ( p ) => {
     if (nFFWDs>0) {
       while (nFFWDs>0){
         data = solveStep(data)
-        if (isFinished(data)) nFFWDs = 0
-        else {
-          setNSteps(nSteps+1)
-          nFFWDs--
-        }
       }
     }
     if (runSolve) {
-      if (isFinished(data)) {
-        runSolve = false
-        nFFWDs = 0
-      } else {
-        data = solveStep(data)
-        setNSteps(nSteps+1)
-      }
+      data = solveStep(data)
     }
   }
 }
