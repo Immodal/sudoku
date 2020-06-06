@@ -67,7 +67,8 @@ const algoXTests = {
 
   'solver works': () => {
     const check = (strIn, strOut) => {
-      eq(strOut, fnGrid.exportString(algoX.solve(fnGrid.importString(strIn))))
+      eq(strOut, fnGrid.exportString(algoX.solve(false)(fnGrid.importString(strIn))))
+      eq(strOut, fnGrid.exportString(algoX.solve(true)(fnGrid.importString(strIn))))
     }
 
     check(test44EasyGameA.input, test44EasyGameA.complete)
