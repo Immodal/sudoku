@@ -7,6 +7,8 @@ const algoX = {
     moves: Immutable.List(),
   }),
 
+  // Generate a map that holds all the information needed to represent a given grid
+  // and the progress in finding a solution
   mkStateMap: grid => {
     // Lookup Table for using rows to find the [i,j,v] they represent
     const mkLookup = grid => {
@@ -105,11 +107,13 @@ const algoX = {
     }
     return data.get("grid")
   },
-
+  // Update the grid to represent the current solution
   updateGrid: (state, grid) => {
     return grid.set("matrix", grid.get("matrix").withMutations(mutable => {
       state.get("solution").forEach(row => {
         const s = state.get("lookup").get(row)
+        // If statement not strictly needed, just want to prevent overriding original input cells
+        // to make possible bugs more obvious
         if(mutable.getIn([s.get("i"), s.get("j")])==" ") {
           mutable.setIn([s.get("i"), s.get("j")], s.get("v"))
         }
@@ -124,6 +128,8 @@ const algoX = {
   getNext: state => {
     const col = algoX.getUnsatisfiedCol(state)
     const candidates = col>=0 ? algoX.getCandidates(state, col) : Immutable.Set()
+    // Subtract both valid and invalid candidates so that states following this will not 
+    // have to process candidates already shown to be invalid
     const nextState = state.set("open", state.get("open").subtract(candidates))
     return candidates
       .filter(c => algoX.rowIsValid(nextState, c)) // filter for valid candidates
