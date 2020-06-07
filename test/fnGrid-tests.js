@@ -68,6 +68,95 @@ const fnGridTests = {
     check(test44EasyGameA.completeInvalid1, expGrid3)
   },
 
+  'correctly checks str of format 2 for validity': () => {
+    const change = (str, row, col, value) => {
+      let sm = str.split("\n").map(row => row.split(""))
+      sm[row][col] = value
+      return sm.map(row => row.join("")).join("\n")
+    }
+
+    const str = `200080300
+060070084
+030500209
+000105408
+000000000
+402706000
+301007040
+720040060
+004010003`
+    const str2 = `2000803000
+0600700840
+0305002090
+0001054080
+0000000000
+4027060000
+3010070400
+7200400600
+0040100030`
+    const str3 = `2000803000
+0600700840
+0305002090
+0001054080
+0000000000
+4027060000
+3010070400
+7200400600
+0040100030
+0000000000`
+    eq(1, fnGrid.strIsValid2(str)) // valid
+    eq(0, fnGrid.strIsValid2(change(str, 3, 2, "00"))) // One row is too long
+    eq(0, fnGrid.strIsValid2(change(str, 4, 4, ""))) // One row is too short
+    eq(-1, fnGrid.strIsValid2(str2)) // is not a square
+    eq(-2, fnGrid.strIsValid2(str3)) // is 10x10, not a valid size
+    eq(-3, fnGrid.strIsValid2(change(str, 8, 8, "A"))) // Invalid symbol
+    eq(-4, fnGrid.strIsValid2(change(str, 3, 2, "8"))) // Duplicate in row
+    eq(-5, fnGrid.strIsValid2(change(str, 8, 3, "5"))) // Duplicate in column
+    eq(-6, fnGrid.strIsValid2(change(str, 4, 1, "4"))) // Duplicate in block
+  },
+
+  'imports and exports grid from and to string2': () => {
+    const check = (strIn, strOut, exp) => {
+      const grid = fnGrid.importString2(strIn)
+      eq(exp.get("isComplete"), grid.get("isComplete"))
+      eq(true, Immutable.is(grid.get("symbols"), exp.get("symbols")))
+      eq(true, Immutable.is(grid.get("matrix"), exp.get("matrix")))
+      eq(strOut, fnGrid.exportString(grid))
+    }
+    const expGrid1 = Immutable.fromJS({
+      isComplete: false,
+      symbols: Immutable.Set(["1", "2", "3", "4"]),
+      matrix: [
+        [" ", "1", " ", "4"],
+        ["4", "2", "1", " "],
+        [" ", "3", "4", "2"],
+        ["2", " ", "3", " "],
+      ]
+    })
+    check(test44EasyGameA.inputf2, test44EasyGameA.input, expGrid1)
+    const expGrid2 = Immutable.fromJS({
+      isComplete: true,
+      symbols: Immutable.Set(["1", "2", "3", "4"]),
+      matrix: [
+        ["3", "1", "2", "4"],
+        ["4", "2", "1", "3"],
+        ["1", "3", "4", "2"],
+        ["2", "4", "3", "1"],
+      ]
+    })
+    check(test44EasyGameA.completef2, test44EasyGameA.complete, expGrid2)
+    const expGrid3 = Immutable.fromJS({
+      isComplete: false,
+      symbols: Immutable.Set(["1", "2", "3", "4"]),
+      matrix: [
+        ["3", "1", "2", "4"],
+        ["4", "2", "1", "3"],
+        ["1", "3", "3", "2"],
+        ["2", "4", "3", "1"],
+      ]
+    })
+    check(test44EasyGameA.completeInvalid1f2, test44EasyGameA.completeInvalid1, expGrid3)
+  },
+
   'gets correct block length': () => {
     eq(2, fnGrid.getBlockLen(fnGrid.importString(test44EasyGameA.complete)))
     eq(3, fnGrid.getBlockLen(fnGrid.importString(test99EasyGameA.complete)))

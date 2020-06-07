@@ -27,7 +27,7 @@ const fnGrid = {
   checkColsUnique: grid => fnGrid.checkRowsUnique(grid.set("matrix", fnMatrix.transpose(grid.get("matrix")))),
 
   // For each block, check that all values are unique
-  checkBlockUnique: grid => {
+  checkBlockUnique: (grid, allowEmpty=false, emptyVal=" ") => {
     const _checkBlocksUnique = (row, col, matrix, blockLength) => { // Recurse through blocks in grid
       // if all blocks have been checked, the matrix is valid
       if (row >= matrix.count()) return true
@@ -50,22 +50,60 @@ const fnGrid = {
         // If the next col is out of bounds, go to next row
         const nextRow = col+1 >= block.count() ? row+1 : row
         const nextCol = col+1 >= block.count() ? 0 : col+1
-        return _checkCellsUnique(nextRow, nextCol, block, valueSet.add(value))
+        return _checkCellsUnique(nextRow, nextCol, block, allowEmpty && value==emptyVal ? valueSet :valueSet.add(value))
       }
     }
-    // first and only call in this function
-    return _checkBlocksUnique(0, 0, grid.get("matrix"), fnGrid.getBlockLen(grid))
+
+    // If its actually a grid object
+    if(Immutable.Map.isMap(grid)) return _checkBlocksUnique(0, 0, grid.get("matrix"), fnGrid.getBlockLen(grid))
+    // Otherwise its a plain matrix
+    else return _checkBlocksUnique(0, 0, grid, fnGrid.getBlockLen(Immutable.Map({matrix:grid})))
   },
 
   // Generate a string for exporting the state of the puzzle, first line being symbols, then matrix
   exportString: grid => grid.get("symbols").join(" ") + "\n" + fnMatrix.toString(grid.get("matrix")),
   
   // Generate a grid from a string
-  importString: str => {
+  importString: (str, symbolSep=" ", rowValueSep=",") => {
     const data = str.split("\n")
     const grid = Immutable.Map({
-      symbols: Immutable.Set(data[0].split(" ")),
-      matrix: Immutable.List(data.slice(1).map(row => Immutable.List(row.split(",")))),
+      symbols: Immutable.Set(data[0].split(symbolSep)),
+      matrix: Immutable.List(data.slice(1).map(row => Immutable.List(row.split(rowValueSep)))),
+    })
+    return grid.set("isComplete", fnGrid.validate(grid))
+  },
+
+  strIsValid2: str => {
+    // Unless they are a "0", symbols can't be repeated in a row, col or block
+    const rowsAreUnique = data => data.every(row => row.every((c, i, arr) => c=="0" || (c!="0" && arr.indexOf(c)==i)))
+    const colsAreUnique = data => rowsAreUnique(fnMatrix.transpose(Immutable.fromJS(data)).toJS())
+    const blocksAreUnique = data => fnGrid.checkBlockUnique(Immutable.fromJS(data), true, "0")
+    const allSymbolsAreValid = data => data
+      .reduce((acc, row) => acc.concat(row), []) // Combine into a single string
+      .every(v => validSymbols.indexOf(v)>=0) // Check that all symbols appear in validSymbols
+    const VALID_SYMBOLS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+    const validSizes = [2,3,4,5].map(n => n*n)
+    const data = str.split("\n").map(row => row.split(""))
+    // Symbol usage must be in order
+    // a.k.a can't use "A" in a 9x9 puzzle
+    const validSymbols = VALID_SYMBOLS.slice(0, data.length+1)
+    if(!data.every(row => row.length==data[0].length)) return 0 // Not all rows are an equal length
+    else if(data.length != data[0].length) return -1 // Is not a square
+    else if(!validSizes.some(s => s==data.length)) return -2 // Is not a valid size
+    else if(!allSymbolsAreValid(data)) return -3
+    else if(!rowsAreUnique(data)) return -4 // No duplicates within rows
+    else if(!colsAreUnique(data)) return -5 // No duplicates within columns
+    else if(!blocksAreUnique(data)) return -6 // No duplicates within blocks
+    else return 1 // is valid
+  },
+
+  // Generate a grid from a string of a more common format
+  importString2: str => {
+    const validSymbols = Immutable.List("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""))
+    const data = str.split("\n")
+    const grid = Immutable.Map({
+      symbols: validSymbols.slice(0, data[0].length).toSet(),
+      matrix: Immutable.List(data.map(row => Immutable.List(row.replaceAll("0"," ").split("")))),
     })
     return grid.set("isComplete", fnGrid.validate(grid))
   },

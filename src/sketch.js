@@ -8,9 +8,9 @@ const sketch = ( p ) => {
   const GAX = "greedyalgox"
 
   // Data Vars
-  let input_grid = fnGrid.importString(test44EasyGameA.input)
+  let input_grid = fnGrid.importString(test99EasyGameA.input)
   let data = null
-  let dataMap = Immutable.Map()
+  const dataMap = Immutable.Map()
     .set(DFS, basicSearch.mkDataMap)
     .set(BFS, basicSearch.mkDataMap)
     .set(GS, basicSearch.mkDataMap)
@@ -21,19 +21,29 @@ const sketch = ( p ) => {
   let nSteps = 0
   let nFFWDs = 0
 
-  let solveStepMap = Immutable.Map()
+  const solveStepMap = Immutable.Map()
     .set(DFS, basicSearch.solveStep(false))
     .set(BFS, basicSearch.solveStep(true))
     .set(GS, basicSearch.solveStep(false, true))
     .set(AX, algoX.solveStep(false))
     .set(GAX, algoX.solveStep(true))
 
-  let isFinishedMap = Immutable.Map()
+  const isFinishedMap = Immutable.Map()
     .set(DFS, basicSearch.isFinished)
     .set(BFS, basicSearch.isFinished)
     .set(GS, basicSearch.isFinished)
     .set(AX, algoX.isFinished)
     .set(GAX, algoX.isFinished)
+
+  const customPuzzleParseErrorMap = Immutable.Map()
+    .set(1, "")
+    .set(0, "Not all rows are an equal length")
+    .set(-1, "It is not a square")
+    .set(-2, "Is not a valid size")
+    .set(-3, "One or more symbols are invalid")
+    .set(-4, "There are duplicates in the rows")
+    .set(-5, "There are duplicates in the columns")
+    .set(-6, "There are duplicates in the blocks")
 
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null
@@ -47,6 +57,11 @@ const sketch = ( p ) => {
   let pauseBtn = null
   let resetBtn = null
   let solverSelect = null
+
+  let parsePuzzleBtn = null
+  let parsePuzzleErrorMsg = null
+  let insertExample4x4Btn = null
+  let insertExample9x9Btn = null
 
   // Step nSteps and update the html
   const setNSteps = n => {
@@ -130,11 +145,42 @@ const sketch = ( p ) => {
       solverSelect.changed(() => data = mkDataMap(input_grid))
     }
 
+    const initCustomInputArea = () => {
+      parsePuzzleBtn = initBtn("Parse", "#customPuzzleBtns", () => {
+        const str = customInput.value()
+        const validity = fnGrid.strIsValid2(str)
+        parsePuzzleErrorMsg.html(customPuzzleParseErrorMap.get(validity))
+        if (validity==1) {
+          input_grid = fnGrid.importString2(str)
+          data = mkDataMap(input_grid)
+        }
+      })
+      parsePuzzleErrorMsg = p.createSpan("")
+      parsePuzzleErrorMsg.parent("#customPuzzleBtns")
+      parsePuzzleErrorMsg.style('font-size', '12px')
+      parsePuzzleErrorMsg.style("padding-left", "1em")
+
+      customInput = p.createElement('textarea')
+      customInput.parent("#customInputArea")
+      customInput.attribute("rows", 10)
+      customInput.attribute("cols", 50)
+
+      insertExample4x4Btn = initBtn("4x4 Example", "#insertExampleBtns", () => {
+        customInput.value(test44HardGameA.inputf2)
+      })
+      insertExample9x9Btn = initBtn("9x9 Example", "#insertExampleBtns", () => {
+        customInput.value(test99EasyGameC.inputf2)
+      })
+    }
+
     initCanvas()
     // Col1
     initPuzzleLoader()
     initPlaybackControl()
     initSolverSelect()
+    // Col2
+    initCustomInputArea()
+
 
     data = mkDataMap(input_grid)
   }

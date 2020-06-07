@@ -13,9 +13,11 @@
     <script src="src/sketch.js"></script>
   </head>
   <body>
-    <div style="display: flex; justify-content:flex-start;">
-      <div id="cv"></div>
-      <div id="col1" style="padding-left: 1em;">
+    <h1>Sudoku Solver</h1>
+    <p>Link to repo: <a href="https://github.com/Immodal/sudoku">Immodal/sudoku</a>, check out the readme for more info.</p>
+    <div style="display: flex; flex-wrap: wrap; justify-content:flex-start;">
+      <div id="cv" style="margin-bottom: 1em"></div>
+      <div id="col1" style="padding-left: 1em; margin-bottom: 1em">
         <h3 class="title" style="margin-top:0;">Random Puzzles</h3>
         <div id="loaderBtns"></div>
         <h3 class="title">Playback Control</h3>
@@ -24,6 +26,25 @@
         </div>
         <h3 class="title">Solver Selection</h3>
         <div id="solverSelect"></div>
+      </div>
+      <div id="col2" style="padding-left: 1em;">
+        <h3 class="title" style="margin-top:0;">Custom Puzzles</h3>
+        <p>Rules:</p>
+        <ol>
+          <li>Puzzle must be a square</li>
+          <li>Supported sizes are 4x4, 9x9, 16x16, 25x25</li>
+          <li>Use "0" to denote empty cells</li>
+          <li>
+            Valid Symbols are 1-9, A-Z, must be used in order.
+            <ul>
+              <li>in a 4x4 puzzle, only 1,2,3,4 are valid</li>
+              <li>in a 16x16 puzzle, only 1-9 and A-G are valid</li>
+            </ul>
+          </li>
+        </ol>
+        <div id="customPuzzleBtns"></div>
+        <div id="customInputArea"></div>
+        <div id="insertExampleBtns"></div>
       </div>
     </div>
   </body>
