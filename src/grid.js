@@ -83,10 +83,10 @@ const fnGrid = {
       .every(v => validSymbols.indexOf(v)>=0) // Check that all symbols appear in validSymbols
     const VALID_SYMBOLS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
     const validSizes = [2,3,4,5].map(n => n*n)
-    const data = str.split("\n").map(row => row.split(""))
+    const data = str.toUpperCase().split("\n").map(row => row.split(""))
     // Symbol usage must be in order
     // a.k.a can't use "A" in a 9x9 puzzle
-    const validSymbols = VALID_SYMBOLS.slice(0, data.length+1)
+    const validSymbols = VALID_SYMBOLS.slice(0, data.length+1) // +1 to account for "0"
     if(!data.every(row => row.length==data[0].length)) return 0 // Not all rows are an equal length
     else if(data.length != data[0].length) return -1 // Is not a square
     else if(!validSizes.some(s => s==data.length)) return -2 // Is not a valid size
@@ -100,7 +100,7 @@ const fnGrid = {
   // Generate a grid from a string of a more common format
   importString2: str => {
     const validSymbols = Immutable.List("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""))
-    const data = str.split("\n")
+    const data = str.toUpperCase().split("\n")
     const grid = Immutable.Map({
       symbols: validSymbols.slice(0, data[0].length).toSet(),
       matrix: Immutable.List(data.map(row => Immutable.List(row.replaceAll("0"," ").split("")))),

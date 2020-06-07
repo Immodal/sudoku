@@ -62,6 +62,7 @@ const sketch = ( p ) => {
   let parsePuzzleErrorMsg = null
   let insertExample4x4Btn = null
   let insertExample9x9Btn = null
+  let insertExample16x16Btn = null
 
   // Step nSteps and update the html
   const setNSteps = n => {
@@ -170,6 +171,9 @@ const sketch = ( p ) => {
       })
       insertExample9x9Btn = initBtn("9x9 Example", "#insertExampleBtns", () => {
         customInput.value(test99EasyGameC.inputf2)
+      })
+      insertExample16x16Btn = initBtn("16x16 Example", "#insertExampleBtns", () => {
+        customInput.value(test1616EasyGameA.inputf2)
       })
     }
 
