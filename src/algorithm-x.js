@@ -1,6 +1,11 @@
-// Based on Donald Knuth's Algorithm X
+/**
+ * Non-Dancing-Links implementation of Donald Knuth's Algorithm X
+ */
 const algoX = {
 
+  /**
+   * Make the data object used by the solver
+   */
   mkDataMap: grid => Immutable.Map({
     grid: grid,
     inputGrid: grid,
@@ -8,8 +13,10 @@ const algoX = {
     moves: Immutable.List(),
   }),
 
-  // Generate a map that holds all the information needed to represent a given grid
-  // and the progress in finding a solution
+  /**
+   * Returns a state object that holds all the information needed to represent a given grid
+   * and the progress in finding a solution
+   */
   mkStateMap: grid => {
     // Lookup Table for using rows to find the [i,j,v] they represent
     const mkLookup = grid => {
@@ -85,7 +92,11 @@ const algoX = {
     return Immutable.Map(state)
   }, // End mkDataMap
 
-  solveStep: isGreedy => data => { // Depth first search using Algorithm X
+  /**
+   * Returns the data object after moving the state forward by one step
+   * This separate from the solver to allow stepping for visualization
+   */
+  solveStep: isGreedy => data => {
     const moves = data.get("moves")
     const state = data.get("state")
 
@@ -95,6 +106,7 @@ const algoX = {
         return data.setIn(["grid","isComplete"], true)
       } else return data
     else {
+      // Solution wasn't found so get the list of moves from here and choose one
       const newMoves = moves.concat(algoX.getNext(state, isGreedy))
       return data.withMutations(mutable => {
         mutable.set("state", newMoves.last())
@@ -104,7 +116,11 @@ const algoX = {
     }
   },
 
-  // Impure Iterative Solver
+  /**
+   * Returns a grid containing the solution found by the solver
+   * Runs solver until a solution is found or there are no more moves to be evaluated
+   * When isGreedy are set to false, this runs as a plain Algorithm X DFS searching from top left to bottom right
+   */
   solve: isGreedy => grid => {
     const step = algoX.solveStep(isGreedy)
     let data = algoX.mkDataMap(grid)
@@ -114,7 +130,11 @@ const algoX = {
     }
     return data.get("grid")
   },
-  // Update the grid to represent the current solution
+  
+  /**
+   * Returns an updated grid object based on the current state of the solution
+   * Best to only pass in an unaltered grid object as it does not override cells with existing values
+   */
   updateGrid: (state, grid) => {
     return grid.set("matrix", grid.get("matrix").withMutations(mutable => {
       state.get("solution").forEach(row => {
@@ -128,12 +148,21 @@ const algoX = {
     }))
   },
 
-  // Either a solution has been found, or there are no more open rows
+  /**
+   * Returns true if there is no more work left to be done on the data object
+   */
   isFinished: data => data.getIn(["grid","isComplete"]) || data.getIn(["state","open"]).count()<=0,
-  // If solution found once all constraints are satisfied, which happens to be the number of columns in the ecMatrix
+
+  /**
+   * Returns true if the number of constraints that have been satisfied match the number of columns in the exact cover matrix
+   */
   solutionFound: data => data.getIn(["state","satisfied"]).count() == data.getIn(["state","ecMatrix",0]).count(),
 
-  // Get a list of states that follow the current given state
+  /**
+   * Returns a List of moves that are available from the given state
+   * If isGreedy is true, returns the smallest list of moves it can find
+   * If isGreedy is false, returns the list of moves from the first unsatisfied constraint it finds.
+   */
   getNext: (state, isGreedy) => {
     const candidates = isGreedy ? algoX.getBestCandidates(state) : algoX.getFirstCandidates(state)
     // Subtract both valid and invalid candidates so that states following this will not 
@@ -152,33 +181,51 @@ const algoX = {
       .toList()
   },
 
-  // Get the smallest set of candidates possible for a given state
+  /**
+   * Returns the smallest list of rows (candidates) by computing the number of rows that satisfy a given column for all columns
+   */
   getBestCandidates: state => {
     const cols = algoX.getUnsatisfiedCols(state)
+    // Recursively iterate through the unsatisfied columns in the exact cover matrix to find the column with the least candidates
     const _getBestCandidates = (cols, i=0, best=Immutable.Set()) => {
       if(i<cols.count()) {
         const cs = algoX.getCandidates(state, cols.get(i))
-        if (i==0 || (cs.count()>0 && cs.count()<best.count())) return _getBestCandidates(cols, i+1, cs)
-        else return _getBestCandidates(cols, i+1, best)
+        // If there is an unsatisfiable column, exit early, this state is invalid
+        if (cs.count()<=0) return Immutable.Set()
+        // If there is a column with less candidates, that is the new best and continue
+        else if (i==0 || (cs.count()<best.count())) return _getBestCandidates(cols, i+1, cs)
+        else return _getBestCandidates(cols, i+1, best) // If not, keep the current best
       } else return best
     }
     return _getBestCandidates(cols)
   }, 
 
-  // Get candidates for the left most column that is unsatisfied
+  /**
+   * Returns the list of row (candidates) that satisfy the first unsatisfied column
+   */
   getFirstCandidates: state => {
     const col = algoX.getUnsatisfiedCol(state)
     return col>=0 ? algoX.getCandidates(state, col) : Immutable.Set()
   }, 
 
-  // Get a set of rows that satisfy a given column
+  /**
+   * Returns a set of rows that satisfy a given column
+   */
   getCandidates: (state, col) => state.get("open").filter(row => state.getIn(["ecMatrix", row]).get(col)>0),
-  // If the row does not satisfy any cols that have already been satisfied (no intersection), then it is valid
+
+  /**
+   * Returns true if the row does not satisfy any cols that have already been satisfied (no intersection), then it is valid
+   */
   rowIsValid: (state, row) => state.get("satisfied").intersect(algoX.getSatisfiedCols(state, row)).count()<=0,
-  // Make a list of column indices that the row satisfies
+
+  /**
+   * Returns a list of columns that the row satisfies
+   */
   getSatisfiedCols: (state, row) => state.get("ecMatrix").get(row).map((s,i) => s>0 ? i : -1).filter(col => col>=0),
 
-  // Find a column that is not satisfied by the solution
+  /**
+   * Returns a column that is not satisfied by the current solution
+   */
   getUnsatisfiedCol: state => { 
     for (let i=0; i<state.getIn(["ecMatrix", 0]).count(); i++) {
       if(!state.get("satisfied").has(i)) return i;
@@ -186,7 +233,9 @@ const algoX = {
     return -1;
   },
 
-  // Get a list of all unsatisfied columns
+  /**
+   * Returns a list of all columns that haven't been satisfied by the current solution
+   */
   getUnsatisfiedCols: state => fnArr.rangeSet(state.getIn(["ecMatrix", 0]).count())
     .subtract(state.get("satisfied"))
     .toList(),

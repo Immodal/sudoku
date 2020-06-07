@@ -1,34 +1,55 @@
 // Grid functions
 const fnGrid = {
-  // Sets the value of a cell in a grid.
+  /**
+   * Sets the value of a cell inside the matrix of the grid object.
+   * Returns a mutated copy of the grid
+   */
   setValue: (grid, row, col, value) => grid.setIn(['matrix', row, col], value),
 
-  // Get the submatrix the cell at (row, col) belongs to
+  /**
+   * Returns the block (submatrix) that the cell at [row,col] belongs to.
+   */
   getBlock: (grid, row, col) => {
     const blockLength = fnGrid.getBlockLen(grid)
     const rowOffset = row - (row % blockLength)
     const colOffset = col - (col % blockLength)
     return fnMatrix.submatrix(grid.get("matrix"), rowOffset, colOffset, blockLength, blockLength)
   },
-  // For square Sudoku boards, the block length is always sqrt(board length)
+
+  /**
+   * Returns the number of blocks in a given row or column of the grid
+   * For square Sudoku boards, the block length is always sqrt(board length)
+   */
   getBlockLen: grid => Math.floor(Math.sqrt(grid.get("matrix").count())),
 
-  // Check if the grid contains a valid solution
+  /**
+   * Returns true if the grid contains a valid solution
+   */
   validate: grid => fnGrid.checkSymbols(grid) && fnGrid.checkRowsUnique(grid) && fnGrid.checkColsUnique(grid) && fnGrid.checkBlockUnique(grid),
 
-  // For all cells, check if their value can be found in symbols
+  /**
+   * Returns true if all cells contain a value that can be found in the symbols set of the grid object
+   */
   checkSymbols: grid => grid.get("matrix").every(row => row.every(v => grid.get("symbols").has(v))),
 
-  // For all rows, check that each value is unique, but not necessarily a valid symbol
-  // For each row, sort the values, and if value is equal to the one before it, return false
+  /**
+   * Returns true if all rows each do NOT contain duplicate values (not necessarily a valid values)
+   * For each row, sort the values, and if value is equal to the one before it, return false
+   */
   checkRowsUnique: grid => grid.get("matrix").every(row => row.sort().every((v, i, list) => i!=0 ? v!=list.get(i-1) : true)),
 
-  // Inefficient, but convenient, will be slow for larger boards. Transpose matrix then what were originally columns are now rows
+  /**
+   * Returns true if all columns each do NOT contain duplicate values (not necessarily a valid values)
+   * Transposing matrix turns columns to rows and allows us to reuse checkRowsUnique
+   */
   checkColsUnique: grid => fnGrid.checkRowsUnique(grid.set("matrix", fnMatrix.transpose(grid.get("matrix")))),
 
-  // For each block, check that all values are unique
+  /**
+   * Returns true if all blocks each do NOT contain duplicate values (not necessarily a valid values)
+   */
   checkBlockUnique: (grid, allowEmpty=false, emptyVal=" ") => {
-    const _checkBlocksUnique = (row, col, matrix, blockLength) => { // Recurse through blocks in grid
+    // Recursively iterate through blocks in grid
+    const _checkBlocksUnique = (row, col, matrix, blockLength) => {
       // if all blocks have been checked, the matrix is valid
       if (row >= matrix.count()) return true
       // if cells in block are invalid, early termination
@@ -40,7 +61,8 @@ const fnGrid = {
         return _checkBlocksUnique(nextRow, nextCol, matrix, blockLength)
       }
     }
-    const _checkCellsUnique = (row, col, block, valueSet) => {  // Recurse through cells in grid
+    // Recursively iterate through cells in a block
+    const _checkCellsUnique = (row, col, block, valueSet) => {
       // if all cells have been checked, the block is valid
       if (row >= block.count()) return true
       // if cells in block are invalid, early termination
@@ -60,10 +82,21 @@ const fnGrid = {
     else return _checkBlocksUnique(0, 0, grid, fnGrid.getBlockLen(Immutable.Map({matrix:grid})))
   },
 
-  // Generate a string for exporting the state of the puzzle, first line being symbols, then matrix
+  /**
+   * Returns a string representing the state of the puzzle, first line being symbols (space separated), then matrix (comma separated)
+   */
   exportString: grid => grid.get("symbols").join(" ") + "\n" + fnMatrix.toString(grid.get("matrix")),
   
-  // Generate a grid from a string
+  /**
+   * Returns a grid object constructed based on the provided string, first line being symbols (space separated), 
+   * then matrix (comma separated, spaces represent empty cells)
+   * Example:
+   * 1 2 3 4
+   *  ,1, ,4
+   * 4,2,1, 
+   *  ,3,4,2
+   * 2, ,3, 
+   */
   importString: (str, symbolSep=" ", rowValueSep=",") => {
     const data = str.split("\n")
     const grid = Immutable.Map({
@@ -73,6 +106,9 @@ const fnGrid = {
     return grid.set("isComplete", fnGrid.validate(grid))
   },
 
+  /**
+   * Returns true if the provided string meets all requirements for string format 2 
+   */
   strIsValid2: str => {
     // Unless they are a "0", symbols can't be repeated in a row, col or block
     const rowsAreUnique = data => data.every(row => row.every((c, i, arr) => c=="0" || (c!="0" && arr.indexOf(c)==i)))
@@ -81,7 +117,7 @@ const fnGrid = {
     const allSymbolsAreValid = data => data
       .reduce((acc, row) => acc.concat(row), []) // Combine into a single string
       .every(v => validSymbols.indexOf(v)>=0) // Check that all symbols appear in validSymbols
-    const VALID_SYMBOLS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+    const VALID_SYMBOLS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("") // "0" is valid in an empty grid.
     const validSizes = [2,3,4,5].map(n => n*n)
     const data = str.toUpperCase().split("\n").map(row => row.split(""))
     // Symbol usage must be in order
@@ -97,7 +133,14 @@ const fnGrid = {
     else return 1 // is valid
   },
 
-  // Generate a grid from a string of a more common format
+  /**
+   * Returns a grid object given str that passes strIsValid2. "0" represents empty cells.
+   * Example:
+   * 1400
+   * 0041
+   * 2100
+   * 0012
+   */
   importString2: str => {
     const validSymbols = Immutable.List("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""))
     const data = str.toUpperCase().split("\n")
@@ -108,7 +151,9 @@ const fnGrid = {
     return grid.set("isComplete", fnGrid.validate(grid))
   },
 
-  // Generate a grid from a JSON string queried from https://sugoku.herokuapp.com/board
+  /**
+   * Returns a grid object from a JSON string queried from https://sugoku.herokuapp.com/board
+   */
   importJSON: str => {
     const grid = Immutable.Map({
       symbols: Immutable.Set(["1","2","3","4","5","6","7","8","9"]),

@@ -1,12 +1,17 @@
 const exactCover = {
-  // see https://www.stolaf.edu//people/hansonr/sudoku/exactcovermatrix.htm
-  // for how I expect the row progression to look, columns probably wont be the same.
-  // for this module, the words:
-  // row, col = exact cover matrix row and col
-  // i, j, b = grid row, col and block
-  // v = value at grid[i,j]
-  // Every row will represent [i,j,v]
+  /**
+   * see https://www.stolaf.edu//people/hansonr/sudoku/exactcovermatrix.htm
+   * for how I expect the row progression to look, columns probably wont be the same.
+   * for this module, the words:
+   * row, col = exact cover matrix row and col
+   * Every row will represent [i,j,v]
+   * i, j, b = grid row, col and block
+   * v = value at grid[i,j]
+   */
 
+  /**
+   * Returns an exact cover matrix for the given grid (only influenced by size of grid)
+   */
   mkMatrix: grid => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
@@ -45,23 +50,27 @@ const exactCover = {
       })
   },
 
+  /**
+   * Returns the index of the row in the exact cover matrix representing the cell [i,j] when it takes the value v
+   * This is the most important function that allows me to assign 1s to rows out of order
+   */
   getRowIndex: (i, j, v, grid) => {
-    // Returns the index of the row in the EC matrix for the grid state [i,j,v]
-    // This is the most important function that allows me to assign 1s to rows out of order
     const matrix = grid.get("matrix")
     const symbols = grid.get("symbols")
     // for every cycle of v, j will increase. For every cycle of j, i will increase
     const iOffset = i * matrix.count() * symbols.count()
+    // for every cycle of v, j will increase.
     const jOffset = j * symbols.count()
-    // Thankfully the order of values in the an Immutable.Set is stable
     const vOffset = symbols.toList().indexOf(v) 
     return iOffset + jOffset + vOffset
   },
 
+  /**
+   * Mutates in-place the given exact cover matrix (mutable) to include information (1s) about 
+   * cell constraint columns satisfied by each row.
+   * The col parameter is the starting column index for a particular section of constraints
+   */
   _setCellConstraints: (mutable, grid, col) => {
-    // col represents the starting index for a particular section of constraints
-    // Usually it means that it is the sum on the number of column for each section
-    // that has come before it
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
     // For each grid[i,j]
@@ -79,6 +88,11 @@ const exactCover = {
     }
   },
 
+  /**
+   * Mutates in-place the given exact cover matrix (mutable) to include information (1s) about 
+   * row constraint columns satisfied by each row.
+   * The col parameter is the starting column index for a particular section of constraints
+   */
   _setRowConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
@@ -97,6 +111,11 @@ const exactCover = {
     }
   },
 
+  /**
+   * Mutates in-place the given exact cover matrix (mutable) to include information (1s) about 
+   * column constraint columns satisfied by each row.
+   * The col parameter is the starting column index for a particular section of constraints
+   */
   _setColConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")
@@ -115,6 +134,11 @@ const exactCover = {
     }
   },
 
+  /**
+   * Mutates in-place the given exact cover matrix (mutable) to include information (1s) about 
+   * block constraint columns satisfied by each row.
+   * The col parameter is the starting column index for a particular section of constraints
+   */
   _setBlockConstraints: (mutable, grid, col) => {
     const gMatrix = grid.get("matrix")
     const symbols = grid.get("symbols")

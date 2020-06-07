@@ -1,12 +1,17 @@
 const basicSearch = {
-  // Make data object used in Iterative solver
+  /**
+   * Make the data object used by the solver
+   */
   mkDataMap: grid => Immutable.Map({
     grid: grid,
     moves: Immutable.List([grid]),
   }),
 
-  // Move the iterative algorithm forward one step
-  // This separate from the function to allow stepping for visualization
+
+  /**
+   * Returns the data object after moving the state forward by one step
+   * This separate from the solver to allow stepping for visualization
+   */
   solveStep: (isBfs, isGreedy) => data => {
     const grid = data.get("grid")
     const moves = data.get("moves")
@@ -18,6 +23,7 @@ const basicSearch = {
     else {
       // Otherwise add the moves from current grid and grab the first one in the stack
       const getNext = () => isGreedy ? basicSearch.getGreedyNext(grid) : basicSearch.getNext(grid)
+      // If bfs, take next move from front of move list, otherwise take from the back
       const newMoves = isBfs ? moves.shift().concat(getNext()) : moves.pop().concat(getNext())
       return data
         .set("grid", isBfs ? newMoves.first() : newMoves.last())
@@ -25,7 +31,11 @@ const basicSearch = {
     }
   },
 
-  // Impure Iterative Solver
+  /**
+   * Returns a grid containing the solution found by the solver
+   * Runs solver until a solution is found or there are no more moves to be evaluated
+   * When isGreedy are set to false, this runs as a plain Algorithm X DFS searching from top left to bottom right
+   */
   solve:  (isBfs, isGreedy) => grid => {
     const step = basicSearch.solveStep(isBfs, isGreedy)
     let data = basicSearch.mkDataMap(grid)
@@ -36,9 +46,10 @@ const basicSearch = {
     return data.get("grid")
   },
 
-  // Pure Functional Solver, 
-  // Can easily cause stack overflow for large problems due to lack of tail call optimization in JS
-  // Max recursion depth will equal the total number of moves examined
+  /** 
+   * Pure Functional Solver, Can easily cause stack overflow for large problems due to lack of tail call optimization in JS.
+   * Max recursion depth will equal the total number of moves examined. Recommend solve() instead.
+  */
   solve2: (isBfs, isGreedy) => grid => {
     const _solve = data => {
       const grid = data.get("grid")
@@ -55,7 +66,9 @@ const basicSearch = {
     return _solve(basicSearch.mkDataMap(grid))
   },
 
-  // Get the next available moves from this grid
+  /**
+   * Get the first empty cell in the grid and return the moves available from the cell
+   */
   getNext: grid => {
     // Get the position of next empty cell
     const {row, col} = basicSearch.getEmptyCell(grid)
@@ -68,17 +81,20 @@ const basicSearch = {
     }
   },
 
-  // Get the next available moves from this grid
+  /**
+   * Compute the number of moves available from each cell on the grid and return the one with the fewest moves.
+   */
   getGreedyNext: grid => {
     const symbols = grid.get("symbols")
     const matrix = grid.get("matrix")
+    // Recursively iterate through the matrix and find the cell with the fewest moves.
     const getMoves = (i, j, heap) => {
-      if(i>=matrix.count()) return heap
+      if(i>=matrix.count()) return heap // reached the end of the matrix
       const cell = matrix.getIn([i,j])
       const iNew = j+1 < matrix.count() ? i : i+1
       const jNew = j+1 < matrix.count() ? j+1 : 0
 
-      if (cell==" ") {
+      if (cell==" ") { // Compute only if cell is empty
         const validMoves = symbols.filter(v => basicSearch.isValidMove(grid, i, j, v))
         // *Important* If there are no valid moves in an empty cell, then all moves stemming from
         // this particular grid will be invalid anyway, so just return an empty heap
@@ -95,10 +111,14 @@ const basicSearch = {
     return sorted.count()>0 ? sorted.peek() : Immutable.List()
   },
 
-  // No more work to be done
+  /**
+   * Returns true if there is no more work left to be done on the data object
+   */
   isFinished: data => data.get("grid").get("isComplete") || data.get("moves").count()<=0,
 
-  // Get position of next empty cell, top to bottom, left to right.
+  /**
+   * Returns the position of the first empty cell, top to bottom, left to right.
+   */
   getEmptyCell: (grid, i=0) => {
     const matrix = grid.get("matrix")
     const j = matrix.get(i).indexOf(" ")
@@ -106,8 +126,12 @@ const basicSearch = {
     return j<0 ? (i+1<matrix.count() ? basicSearch.getEmptyCell(grid, i+1) : {row:-1, col:-1}) : {row:i, col:j}
   },
 
-  isValidMove: (grid, row, col, value) => 
-  !grid.get("matrix").get(row).some(v => v==value) && // row
-  !grid.get("matrix").some(row => row.get(col)==value) && // col
-  !fnGrid.getBlock(grid, row, col).some(row => row.some(v => v==value)), // block
+  /**
+   * Returns true if placing a particular value in cell[row,col] is a valid move
+   */
+  isValidMove: (grid, row, col, value) => {
+    return !grid.get("matrix").get(row).some(v => v==value) && // row
+      !grid.get("matrix").some(row => row.get(col)==value) && // col
+      !fnGrid.getBlock(grid, row, col).some(row => row.some(v => v==value)) // block
+  },
 }
