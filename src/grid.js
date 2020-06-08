@@ -146,7 +146,7 @@ const fnGrid = {
     const data = str.toUpperCase().split("\n")
     const grid = Immutable.Map({
       symbols: validSymbols.slice(0, data[0].length).toSet(),
-      matrix: Immutable.List(data.map(row => Immutable.List(row.replaceAll("0"," ").split("")))),
+      matrix: Immutable.List(data.map(row => Immutable.List(row.replace(/0/g, ' ').split("")))),
     })
     return grid.set("isComplete", fnGrid.validate(grid))
   },
