@@ -169,14 +169,17 @@ const algoX = {
     // have to process candidates already shown to be invalid
     const nextState = state.set("open", state.get("open").subtract(candidates))
     return candidates
-      .filter(c => algoX.rowIsValid(nextState, c)) // filter for valid candidates
+      // filter option 1, better performance, but reduces the accuracy of the greedy selector
+      //.filter(c => algoX.rowIsValid(nextState, c)) 
       .map(c => nextState.withMutations(stateMutable => { // For each candidate,
         // Add to solution,
-        stateMutable.set("solution", nextState.get("solution").add(c)) 
+        stateMutable.set("solution", stateMutable.get("solution").add(c)) 
         // Add cols that candidate satisfies to satisfied set.
-        stateMutable.set("satisfied", nextState.get("satisfied").union(algoX.getSatisfiedCols(nextState, c)))
+        stateMutable.set("satisfied", stateMutable.get("satisfied").union(algoX.getSatisfiedCols(stateMutable, c)))
         // Remove rows that have been made invalid by this candidate
-        stateMutable.set("open", nextState.get("open").filter(row => algoX.rowIsValid(nextState, row)))
+        // filter option 2, much slower than option 1 since it is filtering the open set for states
+        // that may never even be evaluated, but it increases the accuracy of the greedy selector
+        stateMutable.set("open", stateMutable.get("open").filter(row => algoX.rowIsValid(stateMutable, row)))
       }))
       .toList()
   },
@@ -236,7 +239,9 @@ const algoX = {
   /**
    * Returns a list of all columns that haven't been satisfied by the current solution
    */
-  getUnsatisfiedCols: state => fnArr.rangeSet(state.getIn(["ecMatrix", 0]).count())
-    .subtract(state.get("satisfied"))
-    .toList(),
+  getUnsatisfiedCols: state => {
+    return fnArr.rangeSet(state.getIn(["ecMatrix", 0]).count())
+      .subtract(state.get("satisfied"))
+      .toList()
+  },
 }
