@@ -7,6 +7,7 @@ programming style(weaving in more as I learn). Check it out in the link at the t
 
 I also write about the algorithms and the development of the app on my blog:
 
+* [Part 5: Algorithm X](https://kychin.netlify.app/blog/sudoku-5)
 * [Part 4: Exact Cover Matrix](https://kychin.netlify.app/blog/sudoku-4)
 * [Part 3: Greedy Search (Binary Heap)](https://kychin.netlify.app/blog/sudoku-3)
 * [Part 2: Depth and Breadth First Search](https://kychin.netlify.app/blog/sudoku-2)
