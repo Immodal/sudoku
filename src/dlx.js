@@ -9,39 +9,78 @@ const dlx = {
     state.ecMatrix = exactCover.mkMatrix(grid)
     state.lookup = exactCover.mkLookup(grid)
     state.root = dancingLinks.importECMatrix(state.ecMatrix)
+    state.level = 0
+    state.stack = [{c:null, r:null}]
     state.solution = []
-    dlx.init(grid, state.ecMatrix, state.root, state.solution)
+    dlx.init(grid, state.ecMatrix, state.root)
     return state
   },
 
   solveStep: data => {
     const state = data.get("state")
-    const root = state.root
-
-    if(root.right==root) return data
-    else {
-      let c = root.right
-      if (c.down==c) { // no rows
-        while(state.solution[state.solution.length-1].column == null) state.solution.pop()
-        let r = state.solution.pop()
+    // Each level stack is equivalent to the recursion depth
+    let {c, r} = state.stack[state.level]
+    
+    if (c==null) {
+      // If there is nothing here
+      if (state.root.right==state.root) {
+        // Check if its complete
+        state.level--
+        return data
+      } else {
+        // Otherwise Iterate through the rows of this column
+        c = state.root.right
+        // S heuristic
+        for (let j=c.right; j!=state.root; j=j.right) {
+          if (j.size < c.size) c = j
+        }
+        c.cover()
+        state.stack[state.level] = {c:c, r:c}
+      }
+    } else if (r.down != c) {
+      // If r.down is a regular node
+      if (c != r) {
+        // And r is not a header,
+        // then we must undo the move before we continue
+        state.solution.pop()
         for(let j = r.left; j!=r; j=j.left) {
           j.column.uncover()
         }
-        state.solution.push(r.down)
+      }
+      // add r.down to the solution
+      r = r.down
+      state.solution.push(r)
+      for(let j = r.right; j!=r; j=j.right) {
+        j.column.cover()
+      }
+      // and go deeper into the stack
+      state.stack[state.level] = {c:c, r:r}
+      state.level++
+      // Make sure the next level in the stack is clear
+      // Grow stack if needed
+      if(state.stack.length==state.level) {
+        state.stack.push({c:null, r:null})
       } else {
-        c.cover()
-        let r = c.down
-        state.solution.push(r)
-        for(let j = r.right; j!=r; j=j.right) {
-          j.column.cover()
+        state.stack[state.level] = {c:null, r:null}
+      }
+    } else {
+      // If we've reached the end if the column or there are no rows
+      if (c!=r) {
+        // If we actually went through the column, undo the final row
+        state.solution.pop()
+        for(let j = r.left; j!=r; j=j.left) {
+          j.column.uncover()
         }
       }
+      // uncover the column and move up a stack level
+      c.uncover()
+      state.level--
     }
 
     return data.set("grid", dlx.updateGrid(state.solution, data.get("grid")))
   },
 
-  solve: grid => {
+  solve2: grid => {
     const ecMatrix = exactCover.mkMatrix(grid)
     const root = dancingLinks.importECMatrix(ecMatrix)
     const solution = []
@@ -54,19 +93,23 @@ const dlx = {
       } else {
         let c = root.right
         c.cover()
+        console.log("cover")
         for(let r=c.down; r!=c; r=r.down) {
+          console.log("push")
           solution.push(r)
           for(let j = r.right; j!=r; j=j.right) {
             j.column.cover()
           }
           search(k+1)
+          console.log("pop")
           r = solution.pop()
           c = r.column
           for(let j = r.left; j!=r; j=j.left) {
             j.column.uncover()
           }
-          if (solutions.length > 0) break
+          //if (solutions.length > 0) break
         }
+        console.log("uncover")
         c.uncover()
       }
     }

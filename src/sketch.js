@@ -261,8 +261,11 @@ let p5Instance = new p5(sketch);
 
 const ss = grid => {
   let solutions = dlx.solve(grid)
-  let solved = dlx.updateGrid(solutions[0], grid)
-  console.log(fnMatrix.toString(solved.get("matrix")))
+  for (let i=0; i<solutions.length; i++) {
+    let solved = dlx.updateGrid(solutions[i], grid)
+    console.log(fnMatrix.toString(solved.get("matrix")))
+  }
+
 }
 
 /*const ccols = data => {
