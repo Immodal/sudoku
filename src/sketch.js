@@ -1,3 +1,5 @@
+let qq = null
+let zz = null
 // Mutation city, population: Me
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
@@ -6,6 +8,7 @@ const sketch = ( p ) => {
   const GS = "greedys"
   const AX = "algox"
   const GAX = "greedyalgox"
+  const DLX = "dlx"
 
   // Data Vars
   let input_grid = fnGrid.importString(test99EasyGameA.input)
@@ -16,6 +19,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
     .set(GAX, algoX.mkDataMap)
+    .set(DLX, dlx.mkDataMap)
 
   let runSolve = false
   let nSteps = 0
@@ -27,6 +31,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.solveStep(false, true))
     .set(AX, algoX.solveStep(false))
     .set(GAX, algoX.solveStep(true))
+    .set(DLX, dlx.solveStep)
 
   const isFinishedMap = Immutable.Map()
     .set(DFS, basicSearch.isFinished)
@@ -34,6 +39,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.isFinished)
     .set(AX, algoX.isFinished)
     .set(GAX, algoX.isFinished)
+    .set(DLX, dlx.isFinished)
 
   const customPuzzleParseErrorMap = Immutable.Map()
     .set(1, "")
@@ -110,6 +116,7 @@ const sketch = ( p ) => {
         p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
         .then(resp => {
           input_grid = fnGrid.importJSON(resp)
+          zz=input_grid
           data = mkDataMap(input_grid)
         }))
       difficultyRadio = p.createRadio()
@@ -126,7 +133,10 @@ const sketch = ( p ) => {
     const initPlaybackControl = () => {
       stepCounter = p.createSpan("0")
       stepCounter.parent("#stepCount")
-      stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
+      stepBtn = initBtn("Step", "#playbackBtns", () => {
+        data = solveStep(data)
+        qq = data
+      })
       solveBtn = initBtn("Solve", "#playbackBtns", () => runSolve = true)
       ffwdBtn = initBtn("FFWD 500 Steps", "#playbackBtns", () => nFFWDs += 500)
       pauseBtn = initBtn("Pause", "#playbackBtns", () => runSolve = false)
@@ -137,12 +147,13 @@ const sketch = ( p ) => {
       solverSelect = p.createSelect()
       solverSelect.style('font-size', '13px')
       solverSelect.parent("#solverSelect")
+      solverSelect.option("DLX", DLX)
       solverSelect.option("Greedy Algorithm X", GAX)
       solverSelect.option("Naive Algorithm X", AX)
       solverSelect.option("Greedy Depth First", GS)
       solverSelect.option("Naive Depth First", DFS)
       solverSelect.option("Breadth First (Not recommended)", BFS)
-      solverSelect.value(GS)
+      solverSelect.value(DLX)
       solverSelect.changed(() => data = mkDataMap(input_grid))
     }
 
@@ -247,3 +258,20 @@ const p5Grid = {
 }
 
 let p5Instance = new p5(sketch);
+
+const ss = grid => {
+  let solutions = dlx.solve(grid)
+  let solved = dlx.updateGrid(solutions[0], grid)
+  console.log(fnMatrix.toString(solved.get("matrix")))
+}
+
+/*const ccols = data => {
+  const root = data.get("state").root
+  let c = root.right
+  let count = 0
+  while(c!=root) {
+    c = c.right
+    count++
+  }
+  return count
+}*/

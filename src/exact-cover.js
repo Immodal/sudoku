@@ -51,6 +51,27 @@ const exactCover = {
   },
 
   /**
+   * Returns a Map where the keys are the row indices of the exact cover matrix, 
+   * and values are a Map containing the values of i, j, v for that row
+   */
+  mkLookup: grid => {
+    const gMatrix = grid.get("matrix")
+    const symbols = grid.get("symbols")
+    // Create maps of matrix row to grid coords and value for easy lookup
+    return Immutable.Map().withMutations(mutable => {
+      for (let i=0; i<gMatrix.count(); i++) {
+        for (let j=0; j<gMatrix.count(); j++) {
+          // Using ecMatrix row index as key
+          symbols.forEach(v => {
+            const row = exactCover.getRowIndex(i, j, v, grid)
+            mutable.set(row, Immutable.Map({"i":i, "j":j, "v":v}))
+          })
+        }
+      }
+    })
+  },
+
+  /**
    * Returns the index of the row in the exact cover matrix representing the cell [i,j] when it takes the value v
    * This is the most important function that allows me to assign 1s to rows out of order
    */
