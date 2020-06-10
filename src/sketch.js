@@ -1,5 +1,4 @@
-let qq = null
-let zz = null
+
 // Mutation city, population: Me
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
@@ -116,7 +115,6 @@ const sketch = ( p ) => {
         p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
         .then(resp => {
           input_grid = fnGrid.importJSON(resp)
-          zz=input_grid
           data = mkDataMap(input_grid)
         }))
       difficultyRadio = p.createRadio()
@@ -133,10 +131,7 @@ const sketch = ( p ) => {
     const initPlaybackControl = () => {
       stepCounter = p.createSpan("0")
       stepCounter.parent("#stepCount")
-      stepBtn = initBtn("Step", "#playbackBtns", () => {
-        data = solveStep(data)
-        qq = data
-      })
+      stepBtn = initBtn("Step", "#playbackBtns", () => data = solveStep(data))
       solveBtn = initBtn("Solve", "#playbackBtns", () => runSolve = true)
       ffwdBtn = initBtn("FFWD 500 Steps", "#playbackBtns", () => nFFWDs += 500)
       pauseBtn = initBtn("Pause", "#playbackBtns", () => runSolve = false)
@@ -258,23 +253,3 @@ const p5Grid = {
 }
 
 let p5Instance = new p5(sketch);
-
-const ss = grid => {
-  let solutions = dlx.solve(grid)
-  for (let i=0; i<solutions.length; i++) {
-    let solved = dlx.updateGrid(solutions[i], grid)
-    console.log(fnMatrix.toString(solved.get("matrix")))
-  }
-
-}
-
-/*const ccols = data => {
-  const root = data.get("state").root
-  let c = root.right
-  let count = 0
-  while(c!=root) {
-    c = c.right
-    count++
-  }
-  return count
-}*/
