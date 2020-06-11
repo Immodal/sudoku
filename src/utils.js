@@ -39,7 +39,22 @@ const fnArr = {
   /**
    * Returns a JS Array of numbers 0 -> (n-1)
    */
-  _range:n => Array(n).fill().map((_, i) => i)
+  _range:n => Array(n).fill().map((_, i) => i),
+
+  /**
+   * Returns a shuffled List
+   */
+  shuffle: list => {
+    return list.withMutations(mutable => {
+      let j, x, i
+      for (i = mutable.count() - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1))
+        x = mutable.get(i)
+        mutable.set(i, mutable.get(j))
+        mutable.set(j, x)
+      }
+    })
+  }
 }
 
 /**

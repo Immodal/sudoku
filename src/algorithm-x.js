@@ -90,7 +90,8 @@ const algoX = {
       } else return data
     else {
       // Solution wasn't found so get the list of moves from here and choose one
-      const newMoves = moves.concat(algoX.getNext(state, isGreedy))
+      const nextMoves = fnArr.shuffle(algoX.getNext(state, isGreedy)) // Randomize order of rows
+      const newMoves = moves.concat(nextMoves)
       return data.withMutations(mutable => {
         mutable.set("state", newMoves.last())
         mutable.set("grid", algoX.updateGrid(newMoves.last(), data.get("inputGrid")))
