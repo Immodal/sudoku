@@ -18,23 +18,6 @@ const algoX = {
    * and the progress in finding a solution
    */
   mkStateMap: grid => {
-    // Lookup Table for using rows to find the [i,j,v] they represent
-    const mkLookup = grid => {
-      const gMatrix = grid.get("matrix")
-      const symbols = grid.get("symbols")
-      // Create maps of matrix row to grid coords and value for easy lookup
-      return Immutable.Map().withMutations(mutable => {
-        for (let i=0; i<gMatrix.count(); i++) {
-          for (let j=0; j<gMatrix.count(); j++) {
-            // Using ecMatrix row index as key
-            symbols.forEach(v => {
-              const row = exactCover.getRowIndex(i, j, v, grid)
-              mutable.set(row, Immutable.Map({"i":i, "j":j, "v":v}))
-            })
-          }
-        }
-      })
-    } // End mkLookup
     // Generate set of rows that represent cells that have already been filled in the grid
     const initSolution = grid => {
       const gMatrix = grid.get("matrix")
@@ -84,7 +67,7 @@ const algoX = {
 
     const state = {}
     state.ecMatrix = exactCover.mkMatrix(grid)
-    state.lookup = mkLookup(grid)
+    state.lookup = exactCover.mkLookup(grid)
     state.solution = initSolution(grid)
     state.satisfied = initSatisfied(state.solution, state.ecMatrix)
     state.open = initOpen(grid, state.ecMatrix, state.satisfied)

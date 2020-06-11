@@ -1,3 +1,4 @@
+
 // Mutation city, population: Me
 const sketch = ( p ) => {
   const PUZZLE_API = "https://sugoku.herokuapp.com/board"
@@ -6,6 +7,7 @@ const sketch = ( p ) => {
   const GS = "greedys"
   const AX = "algox"
   const GAX = "greedyalgox"
+  const DLX = "dlx"
 
   // Data Vars
   let input_grid = fnGrid.importString(test99EasyGameA.input)
@@ -16,6 +18,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
     .set(GAX, algoX.mkDataMap)
+    .set(DLX, dlx.mkDataMap)
 
   let runSolve = false
   let nSteps = 0
@@ -27,6 +30,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.solveStep(false, true))
     .set(AX, algoX.solveStep(false))
     .set(GAX, algoX.solveStep(true))
+    .set(DLX, dlx.solveStep)
 
   const isFinishedMap = Immutable.Map()
     .set(DFS, basicSearch.isFinished)
@@ -34,6 +38,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.isFinished)
     .set(AX, algoX.isFinished)
     .set(GAX, algoX.isFinished)
+    .set(DLX, dlx.isFinished)
 
   const customPuzzleParseErrorMap = Immutable.Map()
     .set(1, "")
@@ -137,12 +142,13 @@ const sketch = ( p ) => {
       solverSelect = p.createSelect()
       solverSelect.style('font-size', '13px')
       solverSelect.parent("#solverSelect")
+      solverSelect.option("DLX", DLX)
       solverSelect.option("Greedy Algorithm X", GAX)
       solverSelect.option("Naive Algorithm X", AX)
       solverSelect.option("Greedy Depth First", GS)
       solverSelect.option("Naive Depth First", DFS)
       solverSelect.option("Breadth First (Not recommended)", BFS)
-      solverSelect.value(GS)
+      solverSelect.value(DLX)
       solverSelect.changed(() => data = mkDataMap(input_grid))
     }
 
