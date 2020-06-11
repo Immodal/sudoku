@@ -142,4 +142,19 @@ const dancingLinks = {
     columns[columns.length-1].insertRight(root)
     return root
   },
+
+  /**
+   * Returns a string with every column listing the name of every row in it
+   */
+  toString: root => {
+    let s = ""
+    for (let c=root.right; c!=root; c=c.right) {
+      s += `c ${c.name}: `
+      for (let r=c.down; r!=c; r=r.down)
+        s += `${r.name},`
+      s += `\n`
+    }
+    
+    return s.slice(0,-1)
+  },
 }

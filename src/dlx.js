@@ -52,7 +52,7 @@ const dlx = {
   /**
    * Returns a solved grid using the first solution of searchStep function
    */
-  solve2: isGreedy => grid => {
+  solve: isGreedy => grid => {
     const step = dlx.solveStep(isGreedy)
     let data = dlx.mkDataMap(grid)
 

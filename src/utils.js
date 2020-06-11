@@ -22,7 +22,7 @@ const fnMatrix = {
   /**
    * Returns a string representation of the matrix with comma separated values and "\n" separates rows.
    */
-  toString: matrix => matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + "," + v) + "\n", "").slice(0, -1),
+  toString: (matrix, sep=",") => matrix.reduce((ga, row) => ga + row.reduce((ra, v) => ra + sep + v) + "\n", "").slice(0, -1),
 }
 
 const fnArr = {
