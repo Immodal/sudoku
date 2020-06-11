@@ -12,14 +12,39 @@ const dlx = {
    * and the progress in finding a solution
    */
   mkState: grid => {
+    // Cover columns that have already been satisfied by the initial grid
+    const init = (grid, ecMatrix, root) => {
+      const matrix = grid.get("matrix")
+      // Check every cell in the grid
+      for (let i=0; i<matrix.count(); i++) {
+        for (let j=0; j<matrix.count(); j++) {
+          const v = matrix.getIn([i,j])
+          // If it already has a value, cover the columns it satisfies
+          if (v != " ") { 
+            const rowInd = exactCover.getRowIndex(i, j, v, grid)
+            // Get the columns that row satisfies
+            const columns = ecMatrix.get(rowInd)
+              .map((v, i) => v>0? i : -1)
+              .filter(v => v>=0)
+              .toSet()
+            // Find the column object in dlx and cover
+            for (let c=root.right; c!=root; c=c.right) { 
+              if (columns.has(c.name)) c.cover() 
+            }
+          }
+        }
+      }
+    }
+
     const state = {}
     state.ecMatrix = exactCover.mkMatrix(grid)
     state.lookup = exactCover.mkLookup(grid)
     state.root = dancingLinks.importECMatrix(state.ecMatrix)
-    dlx.init(grid, state.ecMatrix, state.root)
+    init(grid, state.ecMatrix, state.root)
     state.level = 0
     state.stack = [{c:null, r:null}]
     state.solution = []
+    state.solutions = []
     
     return state
   },
@@ -29,15 +54,22 @@ const dlx = {
    * This separate from the solver to allow stepping for visualization
    */
   solveStep: data => {
-    if(!dlx.isFinished(data)) return dlx._solveStep(data)
+    if(!dlx.isFinished(data)) return dlx.searchStep(data)
     else return data
   },
 
   /**
+   * Returns true if a solution has been found or if all possibilities have been exhausted
+   */
+  isFinished: data => data.getIn(["grid", "isComplete"]) || data.get("state").level<0,
+
+  /**
    * Returns the data object after moving the state forward by one step
    * This is a non-recursive version of DLX
+   * This is basically Donald Knuth's implementation, but instead of actual recursion,
+   * a stack keeps track of the state at each level of "recursion"
    */
-  _solveStep: data => {
+  searchStep: data => {
     const state = data.get("state")
     // Each level stack is equivalent to the recursion depth
     let {c, r} = state.stack[state.level]
@@ -46,6 +78,9 @@ const dlx = {
     if (c==null) {
       if (state.root.right==state.root) {
         // Check if its complete
+        // Store the solution
+        state.solutions.push(state.solution.concat())
+        // Backtrack
         state.level--
         return data
       } else {
@@ -110,32 +145,45 @@ const dlx = {
         mutable.setIn([s.get("i"), s.get("j")], s.get("v"))
       })
     }))
+    // Can't use "".withMutable" because fnMatrix.transpose will actually mutate it
+    // during validation
     return newGrid.set("isComplete", fnGrid.validate(newGrid))
   },
 
   /**
+   * Returns a solved grid using the first solution of search function
+   */
+  solve2: grid => {
+    const state = dlx.mkState(grid)
+    dlx.search(state, 1)
+    return dlx.updateGrid(state.solutions[0], grid, state.lookup)
+  },
+
+  /**
+   * Mutates state variables as it searches all solutions found up to the limit
    * Recursive Solver that follows Donald Knuth's original implementation
    */
-  solve2: (grid, limit=1) => {
-    const ecMatrix = exactCover.mkMatrix(grid)
-    const lookup = exactCover.mkLookup(grid)
-    const root = dancingLinks.importECMatrix(ecMatrix)
-    dlx.init(grid, ecMatrix, root, solution)
-    const solution = []
-    const solutions = []
-    
-    const search = k => {
-      if (root.right == root) {
-        solutions.push(solution.concat())
-      } else {
+  search: (state, limit=0) => {
+    const root = state.root
+    const solution = state.solution
+    const solutions = state.solutions
+    const _search = k => {
+      // When all columns have been satisfied, store the solution
+      if (root.right == root) solutions.push(solution.concat())
+      else {
+        // Otherwise, choose a column and cover it,
         let c = root.right
         c.cover()
+        // Then go through rows of column depth first
         for(let r=c.down; r!=c; r=r.down) {
+          // Choose a row then cover all columns that it satisfies
           solution.push(r)
           for(let j = r.right; j!=r; j=j.right) {
             j.column.cover()
           }
-          search(k+1)
+          // Search assuming this row is part of the solution
+          _search(k+1)
+          // Undo this row and move on to the next
           r = solution.pop()
           c = r.column
           for(let j = r.left; j!=r; j=j.left) {
@@ -143,37 +191,12 @@ const dlx = {
           }
           if (limit>0 && solutions.length >= limit) break
         }
+        // If all rows have been searched, uncover this column
         c.uncover()
       }
     }
-
-    search(0)
-
-    return dlx.updateGrid(solutions[0], grid, lookup)
+    // Initial call
+    _search(0)
   },
-
-  isFinished: data => data.getIn(["grid", "isComplete"]) || data.get("state").level<0,
-
-  // Cover columns that have already been satisfied by the initial grid
-  init: (grid, ecMatrix, root) => {
-    const matrix = grid.get("matrix")
-    // Check every cell in the grid
-    for (let i=0; i<matrix.count(); i++) {
-      for (let j=0; j<matrix.count(); j++) {
-        const v = matrix.getIn([i,j])
-        // If it already has a value, cover the columns it satisfies
-        if (v != " ") { 
-          const rowInd = exactCover.getRowIndex(i, j, v, grid)
-          const row = ecMatrix.get(rowInd)
-          // Get the columns that row satisfies
-          columns = Immutable.Set(row.map((v, i) => v>0? i : -1).filter(v => v>0))
-          // Find the column object in dlx and cover
-          for (let c=root.right; c!=root; c=c.right) { 
-            if (columns.has(c.name)) c.cover() 
-          }
-        }
-      }
-    }
-  }
 }
 
