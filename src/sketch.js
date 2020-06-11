@@ -7,6 +7,7 @@ const sketch = ( p ) => {
   const GS = "greedys"
   const AX = "algox"
   const GAX = "greedyalgox"
+  const NDLX = "naivedlx"
   const DLX = "dlx"
 
   // Data Vars
@@ -18,6 +19,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.mkDataMap)
     .set(AX, algoX.mkDataMap)
     .set(GAX, algoX.mkDataMap)
+    .set(NDLX, dlx.mkDataMap)
     .set(DLX, dlx.mkDataMap)
 
   let runSolve = false
@@ -30,7 +32,8 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.solveStep(false, true))
     .set(AX, algoX.solveStep(false))
     .set(GAX, algoX.solveStep(true))
-    .set(DLX, dlx.solveStep)
+    .set(NDLX, dlx.solveStep(false))
+    .set(DLX, dlx.solveStep(true))
 
   const isFinishedMap = Immutable.Map()
     .set(DFS, basicSearch.isFinished)
@@ -38,6 +41,7 @@ const sketch = ( p ) => {
     .set(GS, basicSearch.isFinished)
     .set(AX, algoX.isFinished)
     .set(GAX, algoX.isFinished)
+    .set(NDLX, dlx.isFinished)
     .set(DLX, dlx.isFinished)
 
   const customPuzzleParseErrorMap = Immutable.Map()
@@ -143,10 +147,11 @@ const sketch = ( p ) => {
       solverSelect.style('font-size', '13px')
       solverSelect.parent("#solverSelect")
       solverSelect.option("DLX", DLX)
+      solverSelect.option("Naive DLX", NDLX)
       solverSelect.option("Greedy Algorithm X", GAX)
-      solverSelect.option("Naive Algorithm X", AX)
+      solverSelect.option("Algorithm X", AX)
       solverSelect.option("Greedy Depth First", GS)
-      solverSelect.option("Naive Depth First", DFS)
+      solverSelect.option("Depth First", DFS)
       solverSelect.option("Breadth First (Not recommended)", BFS)
       solverSelect.value(DLX)
       solverSelect.changed(() => data = mkDataMap(input_grid))

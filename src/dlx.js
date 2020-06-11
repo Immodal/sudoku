@@ -50,11 +50,26 @@ const dlx = {
   },
 
   /**
+   * Returns a solved grid using the first solution of searchStep function
+   */
+  solve: isGreedy => grid => {
+    const step = dlx.solveStep(isGreedy)
+    let data = dlx.mkDataMap(grid)
+
+    while(!dlx.isFinished(data)) {
+      data = step(data, isGreedy)
+    }
+
+    return data.get("grid")
+  },
+
+
+  /**
    * Returns the data object after moving the state forward by one step
    * This separate from the solver to allow stepping for visualization
    */
-  solveStep: data => {
-    if(!dlx.isFinished(data)) return dlx.searchStep(data)
+  solveStep: isGreedy => data => {
+    if(!dlx.isFinished(data)) return dlx.searchStep(data, isGreedy)
     else return data
   },
 
@@ -69,7 +84,7 @@ const dlx = {
    * This is basically Donald Knuth's implementation, but instead of actual recursion,
    * a stack keeps track of the state at each level of "recursion"
    */
-  searchStep: data => {
+  searchStep: (data, isGreedy=true) => {
     const state = data.get("state")
     // Each level stack is equivalent to the recursion depth
     let {c, r} = state.stack[state.level]
@@ -85,9 +100,13 @@ const dlx = {
         return data
       } else {
         // Otherwise Choose a column to satisfy
-        // S heuristic
-        for (let j=state.root.right; j!=state.root; j=j.right) {
-          if (c==null || j.size < c.size) c = j
+        if (isGreedy) {
+          // S heuristic
+          for (let j=state.root.right; j!=state.root; j=j.right) {
+            if (c==null || j.size < c.size) c = j
+          }
+        } else {
+          c = state.root.right
         }
         // Cover the chosen column and iterate through the rows
         c.cover()
@@ -153,7 +172,7 @@ const dlx = {
   /**
    * Returns a solved grid using the first solution of search function
    */
-  solve2: grid => {
+  solve2: isGreedy => grid => {
     const state = dlx.mkState(grid)
     dlx.search(state, 1)
     return dlx.updateGrid(state.solutions[0], grid, state.lookup)
@@ -163,7 +182,7 @@ const dlx = {
    * Mutates state variables as it searches all solutions found up to the limit
    * Recursive Solver that follows Donald Knuth's original implementation
    */
-  search: (state, limit=0) => {
+  search: (state, limit=0, isGreedy=true) => {
     const root = state.root
     const solution = state.solution
     const solutions = state.solutions
@@ -172,7 +191,15 @@ const dlx = {
       if (root.right == root) solutions.push(solution.concat())
       else {
         // Otherwise, choose a column and cover it,
-        let c = root.right
+        let c = null
+        if (isGreedy) {
+          // S heuristic
+          for (let j=root.right; j!=root; j=j.right) {
+            if (c==null || j.size < c.size) c = j
+          }
+        } else {
+          c = root.right
+        }
         c.cover()
         // Then go through rows of column depth first
         for(let r=c.down; r!=c; r=r.down) {

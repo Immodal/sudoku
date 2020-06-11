@@ -106,5 +106,23 @@ const dancingLinksTests = {
     eq(root.right, root.right.right.right.right.right.right.right) // Column back
     eq(root.left.up, root.right.down.right.right.down.down) // rows back
     eq(root.left.size, 3)
-  }
+  },
+
+  'converts root to string': () => {
+    const ecMatrix = Immutable.fromJS([
+      [1,0,0,1,1],
+      [1,0,1,0,1],
+      [0,1,0,0,0],
+      [0,1,0,0,1],
+    ])
+
+    root = dancingLinks.importECMatrix(ecMatrix)
+    const exp = `c 0: 0,1,
+c 1: 2,3,
+c 2: 1,
+c 3: 0,
+c 4: 0,1,3,`
+    
+    eq(exp, dancingLinks.toString(root))
+  },
 }
