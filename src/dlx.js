@@ -115,8 +115,8 @@ const dlx = {
       }
     }
 
-    // If r is not a header, then we must undo r before we continue
-    if (c != r) {
+    // If r is not a header, then it was processed in last call. We must undo r before we continue
+    if (r != c) {
       state.solution.pop()
       for(let j = r.left; j!=r; j=j.left) {
         j.column.uncover()
@@ -216,6 +216,7 @@ const dlx = {
           for(let j = r.left; j!=r; j=j.left) {
             j.column.uncover()
           }
+          // This is to limit the number of solutions found and exit early
           if (limit>0 && solutions.length >= limit) break
         }
         // If all rows have been searched, uncover this column
