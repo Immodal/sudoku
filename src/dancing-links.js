@@ -58,7 +58,7 @@ const dancingLinks = {
       // Going top to bottom, i being a row in the column
       let i = column.down
       while (i != column) {
-        // Left to right, j being columns that row i satisfies
+        // Left to right, j a node in row i satisfies
         let j = i.right
         while (j != i) {
           // Point j's up down neighbors at each other
