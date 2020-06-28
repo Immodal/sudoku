@@ -1,7 +1,7 @@
 # Sudoku
  
 This is the repo for my P5JS app that solves Sudoku puzzles using a variety of algorithms and an emphasis on using the functional 
-programming style(weaving in more as I learn). Check it out in the link at the top of the page!
+programming style (weaving in more as I learn). Check it out in the link in the About section of this page!
 
 # Blog
 
