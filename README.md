@@ -7,9 +7,9 @@ programming style (weaving in more as I learn). Check it out in the link in the 
 
 I also write about the algorithms and the development of the app on my blog:
 
-* [Part 6: DLX (Dancing Links)](https://kychin.netlify.app/blog/sudoku-6)
-* [Part 5: Algorithm X](https://kychin.netlify.app/blog/sudoku-5)
-* [Part 4: Exact Cover Matrix](https://kychin.netlify.app/blog/sudoku-4)
-* [Part 3: Greedy Search (Binary Heap)](https://kychin.netlify.app/blog/sudoku-3)
-* [Part 2: Depth and Breadth First Search](https://kychin.netlify.app/blog/sudoku-2)
-* [Part 1: Making the Game](https://kychin.netlify.app/blog/sudoku-1)
+* [DLX (Dancing Links)](https://kychin.netlify.app/sudoku/dlx/)
+* [Algorithm X](https://kychin.netlify.app/sudoku/algorithm-x/)
+* [Exact Cover Matrix](https://kychin.netlify.app/sudoku/exact-cover-matrix/)
+* [Greedy Search (Binary Heap)](https://kychin.netlify.app/sudoku/greedy-search/)
+* [Depth and Breadth First Search](https://kychin.netlify.app/sudoku/depth-breadth-first-search/)
+* [Making the Game](https://kychin.netlify.app/sudoku/making-the-game/)
