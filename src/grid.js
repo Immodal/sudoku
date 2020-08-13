@@ -1,6 +1,21 @@
 // Grid functions
 const fnGrid = {
   /**
+   * Symbol used to denote an empty cell.
+   */
+  EMPTY_SYMBOL: " ",
+
+  /**
+   * Symbol used to denote an empty cell.
+   */
+  EMPTY_SYMBOL2: "0",
+
+  /**
+   * String containing all valid symbols, in order.
+   */
+  VALID_SYMBOLS: "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  
+  /**
    * Sets the value of a cell inside the matrix of the grid object.
    * Returns a mutated copy of the grid
    */
@@ -47,7 +62,7 @@ const fnGrid = {
   /**
    * Returns true if all blocks each do NOT contain duplicate values (not necessarily a valid values)
    */
-  checkBlockUnique: (grid, allowEmpty=false, emptyVal=" ") => {
+  checkBlockUnique: (grid, allowEmpty=false, emptyVal=fnGrid.EMPTY_SYMBOL) => {
     // Recursively iterate through blocks in grid
     const _checkBlocksUnique = (row, col, matrix, blockLength) => {
       // if all blocks have been checked, the matrix is valid
@@ -67,7 +82,7 @@ const fnGrid = {
       if (row >= block.count()) return true
       // if cells in block are invalid, early termination
       const value = block.get(row).get(col)
-      if (value==" " || valueSet.has(value)) return false
+      if (value==fnGrid.EMPTY_SYMBOL || valueSet.has(value)) return false
       else {
         // If the next col is out of bounds, go to next row
         const nextRow = col+1 >= block.count() ? row+1 : row
@@ -85,7 +100,7 @@ const fnGrid = {
   /**
    * Returns a string representing the state of the puzzle, first line being symbols (space separated), then matrix (comma separated)
    */
-  exportString: grid => grid.get("symbols").join(" ") + "\n" + fnMatrix.toString(grid.get("matrix")),
+  exportString: grid => grid.get("symbols").join(fnGrid.EMPTY_SYMBOL) + "\n" + fnMatrix.toString(grid.get("matrix")),
   
   /**
    * Returns a grid object constructed based on the provided string, first line being symbols (space separated), 
@@ -97,7 +112,7 @@ const fnGrid = {
    *  ,3,4,2
    * 2, ,3, 
    */
-  importString: (str, symbolSep=" ", rowValueSep=",") => {
+  importString: (str, symbolSep=fnGrid.EMPTY_SYMBOL, rowValueSep=",") => {
     const data = str.split("\n")
     const grid = Immutable.Map({
       symbols: Immutable.Set(data[0].split(symbolSep)),
@@ -117,7 +132,7 @@ const fnGrid = {
     const allSymbolsAreValid = data => data
       .reduce((acc, row) => acc.concat(row), []) // Combine into a single string
       .every(v => validSymbols.indexOf(v)>=0) // Check that all symbols appear in validSymbols
-    const VALID_SYMBOLS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("") // "0" is valid in an empty grid.
+    const VALID_SYMBOLS = (fnGrid.EMPTY_SYMBOL2 + fnGrid.VALID_SYMBOLS).split("") // "0" is valid in an empty grid.
     const validSizes = [2,3,4,5].map(n => n*n)
     const data = str.toUpperCase().split("\n").map(row => row.split(""))
     // Symbol usage must be in order
@@ -142,14 +157,24 @@ const fnGrid = {
    * 0012
    */
   importString2: str => {
-    const validSymbols = Immutable.List("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""))
+    const validSymbols = Immutable.List(fnGrid.VALID_SYMBOLS.split(""))
     const data = str.toUpperCase().split("\n")
     const grid = Immutable.Map({
       symbols: validSymbols.slice(0, data[0].length).toSet(),
-      matrix: Immutable.List(data.map(row => Immutable.List(row.replace(/0/g, ' ').split("")))),
+      matrix: Immutable.List(data.map(row => Immutable.List(row.replace(/0/g, fnGrid.EMPTY_SYMBOL).split("")))),
     })
     return grid.set("isComplete", fnGrid.validate(grid))
   },
+
+  /**
+   * Returns a string representing the state of the puzzle in a matrix
+   * Example:
+   * 1400
+   * 0041
+   * 2100
+   * 0012
+   */
+  exportString2: grid => grid.get("matrix").map(row => row.join("").replace(/\s/g, fnGrid.EMPTY_SYMBOL2)).reduce((str, row) => str + "\n" + row),
 
   /**
    * Returns a grid object from a JSON string queried from https://sugoku.herokuapp.com/board
@@ -157,7 +182,7 @@ const fnGrid = {
   importJSON: str => {
     const grid = Immutable.Map({
       symbols: Immutable.Set(["1","2","3","4","5","6","7","8","9"]),
-      matrix: Immutable.fromJS(JSON.parse(str).board.map(row => row.map(n => n==0 ? " " : String(n)))),
+      matrix: Immutable.fromJS(JSON.parse(str).board.map(row => row.map(n => n==0 ? fnGrid.EMPTY_SYMBOL : String(n)))),
     })
     return grid.set("isComplete", fnGrid.validate(grid))
   }

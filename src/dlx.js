@@ -63,6 +63,19 @@ const dlx = {
     return data.get("grid")
   },
 
+  /**
+   * Returns the data object after running through the searchStep function
+   */
+  search: (grid, nSolutions, stepLimit=5000) => {
+    let data = dlx.mkDataMap(grid)
+
+    while(data.get("state").solutions.length<nSolutions && stepLimit>0 && data.get("state").level>=0) {
+      data = dlx.searchStep(data, true)
+      stepLimit -= 1
+    }
+
+    return data
+  },
 
   /**
    * Returns the data object after moving the state forward by one step
@@ -174,7 +187,7 @@ const dlx = {
    */
   solve2: isGreedy => grid => {
     const state = dlx.mkState(grid)
-    dlx.search(state, 1)
+    dlx.search2(state, 1, isGreedy)
     return dlx.updateGrid(state.solutions[0], grid, state.lookup)
   },
 
@@ -182,7 +195,7 @@ const dlx = {
    * Mutates state variables as it searches all solutions found up to the limit
    * Recursive Solver that follows Donald Knuth's original implementation
    */
-  search: (state, limit=0, isGreedy=true) => {
+  search2: (state, limit=0, isGreedy=true) => {
     const root = state.root
     const solution = state.solution
     const solutions = state.solutions

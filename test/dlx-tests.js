@@ -47,7 +47,7 @@ c 63: 47,`
 928671354
 154938600`
     const state = dlx.mkState(fnGrid.importString2(str))
-    dlx.search(state)
+    dlx.search2(state)
     eq(2, state.solutions.length)
 
     const str2 = `0000
@@ -55,11 +55,11 @@ c 63: 47,`
 0000
 0000`
   const state2 = dlx.mkState(fnGrid.importString2(str2))
-  dlx.search(state2)
+  dlx.search2(state2)
   eq(288, state2.solutions.length)
 
   const state3 = dlx.mkState(fnGrid.importString(test99EasyGameA.input))
-  dlx.search(state3)
+  dlx.search2(state3)
   eq(1, state3.solutions.length)
   },
 

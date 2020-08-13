@@ -1,7 +1,6 @@
 
 // Mutation city, population: Me
 const sketch = ( p ) => {
-  const PUZZLE_API = "https://sugoku.herokuapp.com/board"
   const DFS = "depthfs"
   const BFS = "breadthfs"
   const GS = "greedys"
@@ -57,7 +56,7 @@ const sketch = ( p ) => {
   // Pre-allocate DOM component vars, cant be inited until setup() is called
   let canvas = null
   let getNewBtn = null
-  let difficultyRadio = null
+  let sizeRadio = null
 
   let stepCounter = null
   let stepBtn = null
@@ -115,21 +114,20 @@ const sketch = ( p ) => {
 
   p.setup = () => {
     const initPuzzleLoader = () => {
-      getNewBtn = initBtn("Get New", "#loaderBtns", () => 
-        p.httpGet(`${PUZZLE_API}?difficulty=${difficultyRadio.value()}`)
-        .then(resp => {
-          input_grid = fnGrid.importJSON(resp)
-          data = mkDataMap(input_grid)
-        }))
-      difficultyRadio = p.createRadio()
-      difficultyRadio.style("padding-left", "1em")
-      difficultyRadio.style("display", "inline")
-      difficultyRadio.style("font-size", "13px")
-      difficultyRadio.parent("#loaderBtns")
-      difficultyRadio.option("Easy", "easy")
-      difficultyRadio.option("Medium", "medium")
-      difficultyRadio.option("Hard", "hard")
-      difficultyRadio.value("easy")
+      getNewBtn = initBtn("Get New", "#loaderBtns", () => {
+        const size = parseInt(sizeRadio.value())
+        input_grid = generator.mkPuzzle(size, 1, size*size)
+        data = mkDataMap(input_grid)
+      })
+      sizeRadio = p.createRadio()
+      sizeRadio.style("padding-left", "1em")
+      sizeRadio.style("display", "inline")
+      sizeRadio.style("font-size", "13px")
+      sizeRadio.parent("#sizesRadio")
+      sizeRadio.option("4")
+      sizeRadio.option("9")
+      sizeRadio.option("16", "16 (May take a while)")
+      sizeRadio.selected("9")
     }
 
     const initPlaybackControl = () => {
