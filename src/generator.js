@@ -2,21 +2,25 @@ const generator = {
   /**
    * Returns a randomly generated grid object that attempts to match the given params as closely as possible.
    */
-  mkPuzzle: (size, maxSolutions, maxEmptyCells) => {
+  mkPuzzle: (size, maxSolutions, maxEmptyCells, stepLimit=1000) => {
     const indices = fnArr.range(size)
     const positions = fnArr.shuffle(indices.flatMap(i => indices.map(j => [i, j]))).toJS()
 
     let best = generator.mkSolution(size)
     let nEmptyCells = 0
 
+    // Reuse the same root to avoid rebuilding the DLM on each loop 
+    const root = dancingLinks.importECMatrix(exactCover.MATRICES.get(best.get("matrix").count()))
     for (let i=0; i<positions.length; i++) {
       const sol = best.withMutations(mutable => {
         mutable.setIn(["matrix", positions[i][0], positions[i][1]], fnGrid.EMPTY_SYMBOL)
         mutable.set("isComplete", false)
       })
 
-      const data = dlx.search(sol, maxSolutions+1, 1000)
-      if (data.get("state").solutions.length == maxSolutions) {
+      if(i>=0) root.reset()
+      const data = dlx.mkDataMap(sol, root)
+      const result = dlx.search(data, maxSolutions+1, stepLimit)
+      if (result.get("state").solutions.length>0 && result.get("state").solutions.length<=maxSolutions) {
         best = sol
         nEmptyCells += 1
         if (nEmptyCells>=maxEmptyCells) return best
