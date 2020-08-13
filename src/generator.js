@@ -2,7 +2,7 @@ const generator = {
   /**
    * Returns a randomly generated grid object that attempts to match the given params as closely as possible.
    */
-  mkPuzzle: (size, maxSolutions, maxEmptyCells) => {
+  mkPuzzle: (size, maxSolutions, maxEmptyCells, stepLimit=1000) => {
     const indices = fnArr.range(size)
     const positions = fnArr.shuffle(indices.flatMap(i => indices.map(j => [i, j]))).toJS()
 
@@ -15,7 +15,7 @@ const generator = {
         mutable.set("isComplete", false)
       })
 
-      const data = dlx.search(sol, maxSolutions+1, 1000)
+      const data = dlx.search(sol, maxSolutions+1, stepLimit)
       if (data.get("state").solutions.length>0 && data.get("state").solutions.length <= maxSolutions) {
         best = sol
         nEmptyCells += 1

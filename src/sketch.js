@@ -1,4 +1,4 @@
-
+let a = null
 // Mutation city, population: Me
 const sketch = ( p ) => {
   const DFS = "depthfs"
@@ -9,9 +9,19 @@ const sketch = ( p ) => {
   const NDLX = "naivedlx"
   const DLX = "dlx"
 
-  const SOLUTIONS_MAX = 9999
+  const SIZE_INIT = "9"
+  const SOLUTIONS_MAX = 10
   const SOLUTIONS_MIN = 1
   const SOLUTIONS_INIT = 1
+
+  const EMPTY_MAX = parseInt(SIZE_INIT) * parseInt(SIZE_INIT)
+  const EMPTY_MIN = 1
+  const EMPTY_INIT = parseInt(SIZE_INIT) * parseInt(SIZE_INIT)
+
+  const STEP_MAX = 5000
+  const STEP_MIN = 0
+  const STEP_INIT = 1000
+  const STEP_STEP = 250
 
   // Data Vars
   let input_grid = fnGrid.importString(test99EasyGameA.input)
@@ -63,6 +73,10 @@ const sketch = ( p ) => {
   let sizeRadio = null
   let maxSolutionsLabel = null
   let maxSolutionsSlider = null
+  let maxEmptyCellsLabel = null
+  let maxEmptyCellsSlider = null
+  let maxStepsLabel = null
+  let maxStepsSlider = null
 
   let stepCounter = null
   let stepBtn = null
@@ -120,9 +134,13 @@ const sketch = ( p ) => {
 
   p.setup = () => {
     const initPuzzleLoader = () => {
-      getNewBtn = initBtn("Get New", "#loaderBtns", () => {
+      getNewBtn = initBtn("Generate New Puzzle", "#loaderBtns", () => {
         const size = parseInt(sizeRadio.value())
-        input_grid = generator.mkPuzzle(size, maxSolutionsSlider.value(), size*size)
+        input_grid = generator.mkPuzzle(
+          size, 
+          maxSolutionsSlider.value(), 
+          maxEmptyCellsSlider.value(),
+          maxStepsSlider.value())
         data = mkDataMap(input_grid)
       })
       sizeRadio = p.createRadio()
@@ -132,8 +150,14 @@ const sketch = ( p ) => {
       sizeRadio.parent("#sizesRadio")
       sizeRadio.option("4")
       sizeRadio.option("9")
-      sizeRadio.option("16", "16 (May take a while)")
-      sizeRadio.selected("9")
+      //sizeRadio.option("16", "16 (May take a while)")
+      sizeRadio.selected(SIZE_INIT)
+      sizeRadio.changed(() => {
+        const size = parseInt(sizeRadio.value())
+        maxEmptyCellsSlider.elt.max = `${size*size}`
+        maxEmptyCellsSlider.value(size*size)
+        maxEmptyCellsLabel.html(maxEmptyCellsSlider.value())
+      })
 
       maxSolutionsSlider = p.createSlider(SOLUTIONS_MIN, SOLUTIONS_MAX, SOLUTIONS_INIT)
       maxSolutionsLabel = p.createSpan(`${maxSolutionsSlider.value()}`)
@@ -141,6 +165,23 @@ const sketch = ( p ) => {
       maxSolutionsSlider.parent('#maxSolutionsSlider')
       maxSolutionsSlider.changed(() => {
         maxSolutionsLabel.html(maxSolutionsSlider.value())
+      })
+
+      maxEmptyCellsSlider = p.createSlider(EMPTY_MIN, EMPTY_MAX, EMPTY_INIT)
+      a = maxEmptyCellsSlider
+      maxEmptyCellsLabel = p.createSpan(`${maxEmptyCellsSlider.value()}`)
+      maxEmptyCellsLabel.parent("#maxEmptyCellsLbl")
+      maxEmptyCellsSlider.parent('#maxEmptyCellsSlider')
+      maxEmptyCellsSlider.changed(() => {
+        maxEmptyCellsLabel.html(maxEmptyCellsSlider.value())
+      })
+
+      maxStepsSlider = p.createSlider(STEP_MIN, STEP_MAX, STEP_INIT, STEP_STEP)
+      maxStepsLabel = p.createSpan(`${maxStepsSlider.value()}`)
+      maxStepsLabel.parent("#maxStepsLbl")
+      maxStepsSlider.parent('#maxStepsSlider')
+      maxStepsSlider.changed(() => {
+        maxStepsLabel.html(maxStepsSlider.value())
       })
     }
 
