@@ -189,17 +189,18 @@ const exactCover = {
 (function () {
   const size4Grid = fnGrid.importString2(test44EasyGameA.inputf2)
   const size9Grid = fnGrid.importString2(test99EasyGameC.inputf2)
-  //const size16Grid = fnGrid.importString2(test1616EasyGameA.inputf2)
 
   exactCover.MATRICES = new Map()
   exactCover.MATRICES.set(4, exactCover.mkMatrix(size4Grid))
   exactCover.MATRICES.set(9, exactCover.mkMatrix(size9Grid))
   //exactCover.MATRICES.set(16, exactCover.mkMatrix(size16Grid))
+  exactCover.MATRICES.set(16, null)
 
   exactCover.LOOKUPS = new Map()
   exactCover.LOOKUPS.set(4, exactCover.mkLookup(size4Grid))
   exactCover.LOOKUPS.set(9, exactCover.mkLookup(size9Grid))
   //exactCover.LOOKUPS.set(16, exactCover.mkLookup(size16Grid))
+  exactCover.LOOKUPS.set(16, null)
 })();
 
 

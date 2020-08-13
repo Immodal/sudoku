@@ -217,6 +217,11 @@ const sketch = ( p ) => {
         parsePuzzleErrorMsg.html(customPuzzleParseErrorMap.get(validity))
         if (validity==1) {
           input_grid = fnGrid.importString2(str)
+          if (input_grid.get("matrix").count()==16 && exactCover.MATRICES.get(16) == null) {
+            const size16Grid = fnGrid.importString2(test1616EasyGameA.inputf2)
+            exactCover.MATRICES.set(16, exactCover.mkMatrix(size16Grid))
+            exactCover.LOOKUPS.set(16, exactCover.mkLookup(size16Grid))
+          }
           data = mkDataMap(input_grid)
         }
       })
