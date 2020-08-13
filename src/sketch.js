@@ -9,6 +9,10 @@ const sketch = ( p ) => {
   const NDLX = "naivedlx"
   const DLX = "dlx"
 
+  const SOLUTIONS_MAX = 9999
+  const SOLUTIONS_MIN = 1
+  const SOLUTIONS_INIT = 1
+
   // Data Vars
   let input_grid = fnGrid.importString(test99EasyGameA.input)
   let data = null
@@ -57,6 +61,8 @@ const sketch = ( p ) => {
   let canvas = null
   let getNewBtn = null
   let sizeRadio = null
+  let maxSolutionsLabel = null
+  let maxSolutionsSlider = null
 
   let stepCounter = null
   let stepBtn = null
@@ -116,7 +122,7 @@ const sketch = ( p ) => {
     const initPuzzleLoader = () => {
       getNewBtn = initBtn("Get New", "#loaderBtns", () => {
         const size = parseInt(sizeRadio.value())
-        input_grid = generator.mkPuzzle(size, 1, size*size)
+        input_grid = generator.mkPuzzle(size, maxSolutionsSlider.value(), size*size)
         data = mkDataMap(input_grid)
       })
       sizeRadio = p.createRadio()
@@ -128,6 +134,14 @@ const sketch = ( p ) => {
       sizeRadio.option("9")
       sizeRadio.option("16", "16 (May take a while)")
       sizeRadio.selected("9")
+
+      maxSolutionsSlider = p.createSlider(SOLUTIONS_MIN, SOLUTIONS_MAX, SOLUTIONS_INIT)
+      maxSolutionsLabel = p.createSpan(`${maxSolutionsSlider.value()}`)
+      maxSolutionsLabel.parent("#maxSolutionsLbl")
+      maxSolutionsSlider.parent('#maxSolutionsSlider')
+      maxSolutionsSlider.changed(() => {
+        maxSolutionsLabel.html(maxSolutionsSlider.value())
+      })
     }
 
     const initPlaybackControl = () => {

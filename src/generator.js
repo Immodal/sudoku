@@ -16,7 +16,7 @@ const generator = {
       })
 
       const data = dlx.search(sol, maxSolutions+1, 1000)
-      if (data.get("state").solutions.length == maxSolutions) {
+      if (data.get("state").solutions.length>0 && data.get("state").solutions.length <= maxSolutions) {
         best = sol
         nEmptyCells += 1
         if (nEmptyCells>=maxEmptyCells) return best

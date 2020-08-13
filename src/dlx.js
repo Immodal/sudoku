@@ -70,7 +70,7 @@ const dlx = {
     let data = dlx.mkDataMap(grid)
 
     while(data.get("state").solutions.length<nSolutions && stepLimit>0 && data.get("state").level>=0) {
-      data = dlx.searchStep(data, true)
+      data = dlx.searchStep(data, true, false)
       stepLimit -= 1
     }
 
@@ -97,7 +97,7 @@ const dlx = {
    * This is basically Donald Knuth's implementation, but instead of actual recursion,
    * a stack keeps track of the state at each level of "recursion"
    */
-  searchStep: (data, isGreedy=true) => {
+  searchStep: (data, isGreedy=true, updateGrid=true) => {
     const state = data.get("state")
     // Each level stack is equivalent to the recursion depth
     let {c, r} = state.stack[state.level]
@@ -163,8 +163,12 @@ const dlx = {
     }
 
     // Check if the grid is complete
-    const newGrid = dlx.updateGrid(state.solution, data.get("grid"), state.lookup)
-    return data.set("grid", newGrid)
+    if(updateGrid) {
+      const newGrid = dlx.updateGrid(state.solution, data.get("grid"), state.lookup)
+      return data.set("grid", newGrid)
+    } else {
+      return data
+    }
   },
 
   /**
