@@ -3,13 +3,13 @@ const generatorTests = {
   "mkSeed": () => {
     Array.from(Array(4).fill(4), size => generator.mkSeed(size)).forEach(str => eq(true, fnGrid.strIsValid2(str)))
     Array.from(Array(4).fill(9), size => generator.mkSeed(size)).forEach(str => eq(true, fnGrid.strIsValid2(str)))
-    Array.from(Array(4).fill(16), size => generator.mkSeed(size)).forEach(str => eq(true, fnGrid.strIsValid2(str)))
+    //Array.from(Array(4).fill(16), size => generator.mkSeed(size)).forEach(str => eq(true, fnGrid.strIsValid2(str)))
   }, 
 
   "mkSolution": () => {
     Array.from(Array(4).fill(4), size => generator.mkSolution(size)).forEach(grid => eq(true, grid.get("isComplete")))
     Array.from(Array(4).fill(9), size => generator.mkSolution(size)).forEach(grid => eq(true, grid.get("isComplete")))
-    Array.from(Array(1).fill(16), size => generator.mkSolution(size)).forEach(grid => eq(true, grid.get("isComplete")))
+    //Array.from(Array(1).fill(16), size => generator.mkSolution(size)).forEach(grid => eq(true, grid.get("isComplete")))
   },
 
   "mkPuzzle": () => {
