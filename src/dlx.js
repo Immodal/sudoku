@@ -2,16 +2,16 @@ const dlx = {
   /**
    * Make the data object used by the solver
    */
-  mkDataMap: (grid, dancingLinksRoot=null) => Immutable.Map({
+  mkDataMap: grid => Immutable.Map({
     grid: grid,
-    state: dlx.mkState(grid, dancingLinksRoot),
+    state: dlx.mkState(grid),
   }),
 
   /**
-   * Returns a state object that holds all the information needed to represent a given grid and the progress in finding a solution.
-   * When provided a root, the function will it is the root for the uninitialized dancing links matrix of grid.
+   * Returns a state object that holds all the information needed to represent a given grid
+   * and the progress in finding a solution
    */
-  mkState: (grid, dancingLinksRoot=null) => {
+  mkState: grid => {
     // Cover columns that have already been satisfied by the initial grid
     const init = (grid, ecMatrix, root) => {
       const matrix = grid.get("matrix")
@@ -39,7 +39,7 @@ const dlx = {
     const state = {}
     state.ecMatrix = exactCover.MATRICES.get(grid.get("matrix").count())
     state.lookup = exactCover.LOOKUPS.get(grid.get("matrix").count())
-    state.root = dancingLinksRoot==null ? dancingLinks.importECMatrix(state.ecMatrix) : dancingLinksRoot
+    state.root = dancingLinks.importECMatrix(state.ecMatrix)
     init(grid, state.ecMatrix, state.root)
     state.level = 0
     state.stack = [{c:null, r:null}]
@@ -66,13 +66,14 @@ const dlx = {
   /**
    * Returns the data object after running through the searchStep function
    */
-  search: (data, nSolutions, stepLimit=5000) => {
+  search: (grid, nSolutions, stepLimit=5000) => {
+    let data = dlx.mkDataMap(grid)
 
     while(data.get("state").solutions.length<nSolutions && stepLimit>0 && data.get("state").level>=0) {
-      data = dlx.searchStep(data, true, false)
+      data = dlx.searchStep(data, true)
       stepLimit -= 1
     }
-    
+
     return data
   },
 
@@ -96,7 +97,7 @@ const dlx = {
    * This is basically Donald Knuth's implementation, but instead of actual recursion,
    * a stack keeps track of the state at each level of "recursion"
    */
-  searchStep: (data, isGreedy=true, updateGrid=true) => {
+  searchStep: (data, isGreedy=true) => {
     const state = data.get("state")
     // Each level stack is equivalent to the recursion depth
     let {c, r} = state.stack[state.level]
@@ -162,12 +163,8 @@ const dlx = {
     }
 
     // Check if the grid is complete
-    if(updateGrid) {
-      const newGrid = dlx.updateGrid(state.solution, data.get("grid"), state.lookup)
-      return data.set("grid", newGrid)
-    } else {
-      return data
-    }
+    const newGrid = dlx.updateGrid(state.solution, data.get("grid"), state.lookup)
+    return data.set("grid", newGrid)
   },
 
   /**

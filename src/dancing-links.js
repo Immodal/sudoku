@@ -47,13 +47,11 @@ const dancingLinks = {
   Column: name => {
     const column = dancingLinks.Node(null, name)
     column.size = 0
-    column.covered = false
 
     /**
      * Covers the column to remove it from the matrix
      */
     column.cover = () => {
-      column.covered = true
       // Point column header's left right neighbors at each other
       column.right.left = column.left
       column.left.right = column.right
@@ -81,7 +79,6 @@ const dancingLinks = {
      * Works in reverse of column.cover
      */
     column.uncover = () => {
-      column.covered = false
       // Going bottom to top, i being a row in the column
       let i = column.up
       while (i != column) {
@@ -105,23 +102,6 @@ const dancingLinks = {
     }
 
     return column
-  },
-
-  /**
-   * Root object of the dancing links matrix. Essentially a Column but also retains references to all column objects.
-   * 
-   */
-  Root: (name, columns) => {
-    const r = dancingLinks.Column(name)
-
-    r.columns = columns
-
-    /**
-     * Uncovers all covered columns to reset the DLM to its initial state
-     */
-    r.reset = () => r.columns.forEach(col => { if (col.covered) col.uncover() })
-
-    return r
   },
 
   /**
@@ -158,7 +138,7 @@ const dancingLinks = {
       }
     }
     // Insert root object
-    const root = dancingLinks.Root(null, columns)
+    const root = dancingLinks.Column()
     columns[columns.length-1].insertRight(root)
     return root
   },
