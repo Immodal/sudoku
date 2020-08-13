@@ -37,8 +37,8 @@ const dlx = {
     }
 
     const state = {}
-    state.ecMatrix = exactCover.mkMatrix(grid)
-    state.lookup = exactCover.mkLookup(grid)
+    state.ecMatrix = exactCover.MATRICES.get(grid.get("matrix").count())
+    state.lookup = exactCover.LOOKUPS.get(grid.get("matrix").count())
     state.root = dancingLinks.importECMatrix(state.ecMatrix)
     init(grid, state.ecMatrix, state.root)
     state.level = 0

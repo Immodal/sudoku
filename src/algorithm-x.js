@@ -66,8 +66,8 @@ const algoX = {
     } // End initSatisfied
 
     const state = {}
-    state.ecMatrix = exactCover.mkMatrix(grid)
-    state.lookup = exactCover.mkLookup(grid)
+    state.ecMatrix = exactCover.MATRICES.get(grid.get("matrix").count())
+    state.lookup = exactCover.LOOKUPS.get(grid.get("matrix").count())
     state.solution = initSolution(grid)
     state.satisfied = initSatisfied(state.solution, state.ecMatrix)
     state.open = initOpen(grid, state.ecMatrix, state.satisfied)
